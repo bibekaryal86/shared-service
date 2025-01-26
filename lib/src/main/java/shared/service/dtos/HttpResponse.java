@@ -1,3 +1,5 @@
 package shared.service.dtos;
 
-public record HttpResponse<T>(int statusCode, T responseBody) {}
+import java.io.Serializable;
+
+public record HttpResponse<T>(int statusCode, T responseBody) implements Serializable {}

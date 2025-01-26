@@ -20,12 +20,12 @@ public class OkHttpLogging implements Interceptor {
     UUID requestId = UUID.randomUUID();
 
     Request request = chain.request();
-    logger.info("[{}] Request: [{}] [{}]", requestId, request.method(), request.url());
+    logger.debug("[{}] Request: [{}] [{}]", requestId, request.method(), request.url());
 
     Response response = chain.proceed(request);
     long endTime = System.nanoTime();
 
-    logger.info(
+    logger.debug(
         "[{}] Response: [{}] in [{}s]",
         requestId,
         response.code(),

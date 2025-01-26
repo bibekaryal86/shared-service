@@ -23,27 +23,39 @@ public class CommonUtilities {
   }
 
   public static String getSystemEnvProperty(final String key, final String defaultValue) {
-    return propertiesMap.getOrDefault(key, defaultValue);
+    final String value = propertiesMap.getOrDefault(key, defaultValue);
+    if (defaultValue.equals(value)) {
+      final String actualValue = getSystemEnvPropertyActual(key);
+      if (isEmpty(actualValue)) {
+        return defaultValue;
+      }
+      return actualValue;
+    }
+    return value;
   }
 
   public static String getSystemEnvProperty(final String key) {
+    final String value = propertiesMap.get(key);
+    if (isEmpty(value)) {
+      return getSystemEnvPropertyActual(key);
+    }
     return propertiesMap.get(key);
   }
 
-  public static Map<String, String> getSystemEnvProperties(final List<String> envKeyNames) {
+  public static Map<String, String> getSystemEnvProperties(final List<String> keys) {
     if (isEmpty(propertiesMap)) {
-      setSystemEnvProperties(envKeyNames);
+      setSystemEnvProperties(keys);
     }
     return propertiesMap;
   }
 
-  private static void setSystemEnvProperties(final List<String> envKeyNames) {
+  private static void setSystemEnvProperties(final List<String> keys) {
     final Map<String, String> tempMap = new HashMap<>();
 
     final Properties systemProperties = System.getProperties();
     systemProperties.forEach(
         (key, value) -> {
-          if (envKeyNames.contains(key.toString())) {
+          if (keys.contains(key.toString())) {
             tempMap.put((String) key, (String) value);
           }
         });
@@ -51,12 +63,20 @@ public class CommonUtilities {
     final Map<String, String> envVariables = System.getenv();
     envVariables.forEach(
         (key, value) -> {
-          if (envKeyNames.contains(key)) {
+          if (keys.contains(key)) {
             tempMap.put(key, value);
           }
         });
 
     propertiesMap = Collections.unmodifiableMap(tempMap);
+  }
+
+  private static String getSystemEnvPropertyActual(String key) {
+    final String value = System.getProperty(key);
+    if (isEmpty(value)) {
+      return System.getenv(key);
+    }
+    return value;
   }
 
   public static boolean isEmpty(final String s) {
