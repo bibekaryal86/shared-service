@@ -41,7 +41,11 @@ public record EmailRequest(
         + (Objects.isNull(emailContent) ? "null" : emailContent.subject())
         + "]"
         + ", attachment=["
-        + (CommonUtilities.isEmpty(emailAttachments) ? "empty" : emailAttachments.stream().map(EmailAttachment::fileName).collect(Collectors.joining("|")))
+        + (CommonUtilities.isEmpty(emailAttachments)
+            ? "empty"
+            : emailAttachments.stream()
+                .map(EmailAttachment::fileName)
+                .collect(Collectors.joining("|")))
         + "]"
         + "}";
   }
@@ -63,7 +67,8 @@ public record EmailRequest(
     }
   }
 
-  public record EmailAttachment(String fileContent, String fileName, String contentType) implements Serializable {
+  public record EmailAttachment(String fileContent, String fileName, String contentType)
+      implements Serializable {
     public EmailAttachment {
       if (CommonUtilities.isEmpty(fileContent) || CommonUtilities.isEmpty(fileName)) {
         throw new IllegalArgumentException("Required Attribute Missing...");

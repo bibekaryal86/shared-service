@@ -5,10 +5,8 @@ import com.mailjet.client.MailjetClient;
 import com.mailjet.client.MailjetRequest;
 import com.mailjet.client.MailjetResponse;
 import com.mailjet.client.resource.Emailv31;
-
 import java.util.List;
 import java.util.UUID;
-
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -22,11 +20,12 @@ public class Email {
   public static final String ENV_MAILJET_PUBLIC_KEY = "MJ_PUBLIC";
   public static final String ENV_MAILJET_PRIVATE_KEY = "MJ_PRIVATE";
 
-  private static final MailjetClient mailjetClient = new MailjetClient(
+  private static final MailjetClient mailjetClient =
+      new MailjetClient(
           ClientOptions.builder()
-                  .apiKey(CommonUtilities.getSystemEnvProperty(ENV_MAILJET_PUBLIC_KEY))
-                  .apiSecretKey(CommonUtilities.getSystemEnvProperty(ENV_MAILJET_PRIVATE_KEY))
-                  .build());
+              .apiKey(CommonUtilities.getSystemEnvProperty(ENV_MAILJET_PUBLIC_KEY))
+              .apiSecretKey(CommonUtilities.getSystemEnvProperty(ENV_MAILJET_PRIVATE_KEY))
+              .build());
 
   public static void sendEmail(final EmailRequest emailRequest) {
     final UUID requestId = UUID.randomUUID();
@@ -52,10 +51,14 @@ public class Email {
       }
 
       if (!CommonUtilities.isEmpty(emailRequest.emailAttachments())) {
-        message.put(Emailv31.Message.ATTACHMENTS, emailAttachmentsJSONArray(emailRequest.emailAttachments()));
+        message.put(
+            Emailv31.Message.ATTACHMENTS,
+            emailAttachmentsJSONArray(emailRequest.emailAttachments()));
       }
 
-      final MailjetRequest request = new MailjetRequest(Emailv31.resource).property(Emailv31.MESSAGES, new JSONArray().put(message));
+      final MailjetRequest request =
+          new MailjetRequest(Emailv31.resource)
+              .property(Emailv31.MESSAGES, new JSONArray().put(message));
 
       final MailjetResponse response = mailjetClient.post(request);
 
@@ -69,7 +72,8 @@ public class Email {
     }
   }
 
-  private static JSONArray emailContactsJSONArray(final List<EmailRequest.EmailContact> emailContacts) {
+  private static JSONArray emailContactsJSONArray(
+      final List<EmailRequest.EmailContact> emailContacts) {
     final JSONArray jsonArray = new JSONArray();
     for (EmailRequest.EmailContact emailContact : emailContacts) {
       jsonArray.put(emailContactJSONObject(emailContact));
@@ -79,15 +83,21 @@ public class Email {
 
   private static JSONObject emailContactJSONObject(final EmailRequest.EmailContact emailContact) {
     return new JSONObject()
-            .put("Email", emailContact.emailAddress())
-            .put("Name", emailContact.fullName());
+        .put("Email", emailContact.emailAddress())
+        .put("Name", emailContact.fullName());
   }
 
-  private static JSONArray emailAttachmentsJSONArray(final List<EmailRequest.EmailAttachment> emailAttachments) {
+  private static JSONArray emailAttachmentsJSONArray(
+      final List<EmailRequest.EmailAttachment> emailAttachments) {
     final JSONArray jsonArray = new JSONArray();
     for (EmailRequest.EmailAttachment emailAttachment : emailAttachments) {
-      jsonArray.put(new JSONObject()
-              .put("ContentType", CommonUtilities.isEmpty(emailAttachment.contentType()) ? "text/plain" : emailAttachment.contentType())
+      jsonArray.put(
+          new JSONObject()
+              .put(
+                  "ContentType",
+                  CommonUtilities.isEmpty(emailAttachment.contentType())
+                      ? "text/plain"
+                      : emailAttachment.contentType())
               .put("Filename", emailAttachment.fileName())
               .put("Base64Content", emailAttachment.fileContent()));
     }
