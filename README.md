@@ -22,3 +22,5 @@ Follow these steps (to be simplified/automated later) to generate the files requ
 * ./gradlew generatePomFileForMavenPublication
 * ABOVE ALL REPLACED BY SINGLE ./gradlew buildAndPublish
 
+./gradlew buildAndPublish works and creates a zip file in build/distributions folder
+
