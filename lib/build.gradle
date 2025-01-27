@@ -10,6 +10,7 @@ plugins {
     // Apply the java-library plugin for API and implementation separation.
     id 'java-library'
     id 'signing'
+    id 'maven-publish'
     id 'com.diffplug.spotless' version '6.25.0'
 }
 
@@ -102,4 +103,26 @@ artifacts {
 
 signing {
     sign configurations.archives
+}
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            groupId = 'com.bibekaryal'
+            artifactId = 'shdsvc'
+            from components.java
+
+            pom {
+                name = 'Shared Service'
+                description = 'This will be the common module shared across repositories with shared services'
+                url = 'https://github.com/bibekaryal86/shared-service'
+                licenses {
+                    license {
+                        name = 'The Apache License, Version 2.0'
+                        url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                    }
+                }
+            }
+        }
+    }
 }

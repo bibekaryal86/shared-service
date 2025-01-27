@@ -19,3 +19,4 @@ Follow these steps (to be simplified/automated later) to generate the files requ
 * ./gradlew sourcesJar
 * ./gradlew javadocJar
 * ./gradlew signArchives
+* ./gradlew generatePomFileForMavenPublication
