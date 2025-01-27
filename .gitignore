@@ -25,3 +25,6 @@ build
 
 # IDE project settings
 .idea
+*.gpg
+gradle.properties
+
