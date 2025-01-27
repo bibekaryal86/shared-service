@@ -1,4 +1,4 @@
-package com.bibekaryal.shdsvc.helpers;
+package io.github.bibekaryal86.shdsvc.helpers;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;

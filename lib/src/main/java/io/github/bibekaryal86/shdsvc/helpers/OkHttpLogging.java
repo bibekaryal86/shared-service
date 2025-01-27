@@ -1,4 +1,4 @@
-package com.bibekaryal.shdsvc.helpers;
+package io.github.bibekaryal86.shdsvc.helpers;
 
 import java.io.IOException;
 import java.util.UUID;

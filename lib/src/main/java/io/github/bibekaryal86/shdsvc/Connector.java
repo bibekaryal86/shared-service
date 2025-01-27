@@ -1,4 +1,4 @@
-package com.bibekaryal.shdsvc;
+package io.github.bibekaryal86.shdsvc;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import java.util.Map;
@@ -12,11 +12,11 @@ import okhttp3.RequestBody;
 import okhttp3.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.bibekaryal.shdsvc.dtos.Enums;
-import com.bibekaryal.shdsvc.dtos.HttpResponse;
-import com.bibekaryal.shdsvc.dtos.ResponseMetadata;
-import com.bibekaryal.shdsvc.helpers.CommonUtilities;
-import com.bibekaryal.shdsvc.helpers.OkHttpLogging;
+import io.github.bibekaryal86.shdsvc.dtos.Enums;
+import io.github.bibekaryal86.shdsvc.dtos.HttpResponse;
+import io.github.bibekaryal86.shdsvc.dtos.ResponseMetadata;
+import io.github.bibekaryal86.shdsvc.helpers.CommonUtilities;
+import io.github.bibekaryal86.shdsvc.helpers.OkHttpLogging;
 
 public class Connector {
   private static final Logger logger = LoggerFactory.getLogger(Connector.class);

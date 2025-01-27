@@ -1,4 +1,4 @@
-package com.bibekaryal.shdsvc.dtos;
+package io.github.bibekaryal86.shdsvc.dtos;
 
 public class Enums {
   public enum HttpMethod {

@@ -61,7 +61,7 @@ spotless {
 // currently this is a manual process, figure out automating later
 // Generate the application JAR (default behavior of the 'java' plugin)
 // Set the base name and version for the project
-archivesBaseName = 'shared_service'
+archivesBaseName = 'shdsvc'
 version = '0.1.0'
 
 jar {
@@ -108,7 +108,7 @@ signing {
 publishing {
     publications {
         mavenPublication(MavenPublication) {
-            groupId = 'com.bibekaryal'
+            groupId = 'io.github.bibekaryal86'
             artifactId = 'shdsvc'
             from components.java
 
@@ -121,6 +121,18 @@ publishing {
                         name = 'The Apache License, Version 2.0'
                         url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
                     }
+                }
+                developers {
+                    developer {
+                        id = 'bibekaryal86'
+                        name = 'Bibek Aryal'
+                        email = 'bibekaryal86@gmail.com'
+                    }
+                }
+                scm {
+                    url = 'https://github.com/bibekaryal86/shared-service'
+                    connection = 'scm:git:git://github.com/bibekaryal86/shared-service.git'
+                    developerConnection = 'scm:git:ssh://git@github.com/bibekaryal86/shared-service.git'
                 }
             }
         }

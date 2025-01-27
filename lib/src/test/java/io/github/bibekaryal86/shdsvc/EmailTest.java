@@ -1,4 +1,4 @@
-package com.bibekaryal.shdsvc;
+package io.github.bibekaryal86.shdsvc;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -20,7 +20,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import com.bibekaryal.shdsvc.dtos.EmailRequest;
+import io.github.bibekaryal86.shdsvc.dtos.EmailRequest;
 
 public class EmailTest {
   private Email email;
