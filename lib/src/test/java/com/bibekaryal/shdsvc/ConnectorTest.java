@@ -1,4 +1,4 @@
-package shared.service;
+package com.bibekaryal.shdsvc;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -13,8 +13,8 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockitoAnnotations;
-import shared.service.dtos.Enums;
-import shared.service.dtos.HttpResponse;
+import com.bibekaryal.shdsvc.dtos.Enums;
+import com.bibekaryal.shdsvc.dtos.HttpResponse;
 
 public class ConnectorTest {
 

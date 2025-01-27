@@ -1,4 +1,4 @@
-package shared.service.dtos;
+package com.bibekaryal.shdsvc.dtos;
 
 public class Enums {
   public enum HttpMethod {

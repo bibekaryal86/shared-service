@@ -1,4 +1,4 @@
-package shared.service;
+package com.bibekaryal.shdsvc;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import java.util.ArrayList;
@@ -8,10 +8,10 @@ import java.util.Timer;
 import java.util.TimerTask;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import shared.service.dtos.Enums;
-import shared.service.dtos.EnvDetailsResponse;
-import shared.service.dtos.HttpResponse;
-import shared.service.helpers.CommonUtilities;
+import com.bibekaryal.shdsvc.dtos.Enums;
+import com.bibekaryal.shdsvc.dtos.EnvDetailsResponse;
+import com.bibekaryal.shdsvc.dtos.HttpResponse;
+import com.bibekaryal.shdsvc.helpers.CommonUtilities;
 
 public class AppEnvProperty {
   private static final Logger logger = LoggerFactory.getLogger(AppEnvProperty.class);

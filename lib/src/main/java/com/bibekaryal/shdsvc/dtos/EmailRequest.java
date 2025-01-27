@@ -1,10 +1,10 @@
-package shared.service.dtos;
+package com.bibekaryal.shdsvc.dtos;
 
 import java.io.Serializable;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
-import shared.service.helpers.CommonUtilities;
+import com.bibekaryal.shdsvc.helpers.CommonUtilities;
 
 public record EmailRequest(
     EmailContact emailFrom,

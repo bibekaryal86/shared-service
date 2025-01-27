@@ -1,4 +1,4 @@
-package shared.service;
+package com.bibekaryal.shdsvc;
 
 import com.mailjet.client.MailjetClient;
 import com.mailjet.client.MailjetRequest;
@@ -10,8 +10,8 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import shared.service.dtos.EmailRequest;
-import shared.service.helpers.CommonUtilities;
+import com.bibekaryal.shdsvc.dtos.EmailRequest;
+import com.bibekaryal.shdsvc.helpers.CommonUtilities;
 
 public class Email {
   private static final Logger logger = LoggerFactory.getLogger(Email.class);

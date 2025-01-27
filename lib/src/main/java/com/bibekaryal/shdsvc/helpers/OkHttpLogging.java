@@ -1,4 +1,4 @@
-package shared.service.helpers;
+package com.bibekaryal.shdsvc.helpers;
 
 import java.io.IOException;
 import java.util.UUID;

@@ -1,4 +1,4 @@
-package shared.service.helpers;
+package com.bibekaryal.shdsvc.helpers;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;

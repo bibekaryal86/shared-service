@@ -1,4 +1,4 @@
-package shared.service;
+package com.bibekaryal.shdsvc;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -14,9 +14,9 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
-import shared.service.dtos.EnvDetailsResponse;
-import shared.service.dtos.HttpResponse;
-import shared.service.helpers.CommonUtilities;
+import com.bibekaryal.shdsvc.dtos.EnvDetailsResponse;
+import com.bibekaryal.shdsvc.dtos.HttpResponse;
+import com.bibekaryal.shdsvc.helpers.CommonUtilities;
 
 public class AppEnvPropertyTest {
 

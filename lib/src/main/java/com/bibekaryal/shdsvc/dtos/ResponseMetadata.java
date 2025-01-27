@@ -1,4 +1,4 @@
-package shared.service.dtos;
+package com.bibekaryal.shdsvc.dtos;
 
 import java.io.Serializable;
 
