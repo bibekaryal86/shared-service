@@ -9,6 +9,7 @@
 plugins {
     // Apply the java-library plugin for API and implementation separation.
     id 'java-library'
+    id 'signing'
     id 'com.diffplug.spotless' version '6.25.0'
 }
 
@@ -53,4 +54,52 @@ spotless {
         removeUnusedImports()
         googleJavaFormat()
     }
+}
+
+// for publishing
+// currently this is a manual process, figure out automating later
+// Generate the application JAR (default behavior of the 'java' plugin)
+// Set the base name and version for the project
+archivesBaseName = 'shared_service'
+version = '0.1.0'
+
+jar {
+    archiveClassifier = ''
+    archiveFileName = "${archivesBaseName}-${version}.jar"
+}
+
+// Generate the sources JAR
+tasks.register('sourcesJar', Jar) {
+    archiveClassifier = 'sources'
+    archiveFileName = "${archivesBaseName}-${version}-sources.jar"
+    from sourceSets.main.allSource
+}
+
+// Generate the Javadoc JAR
+tasks.register('javadocJar', Jar) {
+    archiveClassifier = 'javadoc'
+    archiveFileName = "${archivesBaseName}-${version}-javadoc.jar"
+    from javadoc.destinationDir
+}
+
+// Ensure the Javadoc task runs before creating the Javadoc JAR
+javadocJar.dependsOn javadoc
+
+// Generate checksums for all artifacts
+tasks.withType(AbstractArchiveTask).configureEach { task ->
+    task.outputs.files(task.archiveFile) // Ensure the task outputs the archive file
+    task.doLast {
+        def archiveFile = task.archiveFile.get().asFile
+        ant.checksum(file: archiveFile, algorithm: 'MD5', fileext: '.md5')
+        ant.checksum(file: archiveFile, algorithm: 'SHA1', fileext: '.sha1')
+    }
+}
+
+artifacts {
+    archives javadocJar
+    archives sourcesJar
+}
+
+signing {
+    sign configurations.archives
 }
