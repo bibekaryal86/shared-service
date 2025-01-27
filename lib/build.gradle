@@ -171,7 +171,8 @@ tasks.register('signAndChecksumPom') {
 
 tasks.register('zipLibs', Zip) {
     from fileTree(dir: 'build/libs', include: '**/*')
-    archiveFileName = "${archivesBaseName}-${version}-libs.zip"
+    into "io/github/bibekaryal86/${archivesBaseName}/${version}"
+    archiveFileName = "${archivesBaseName}-${version}.zip"
     destinationDirectory = file('build/distributions')
 }
 
