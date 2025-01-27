@@ -107,7 +107,7 @@ signing {
 
 publishing {
     publications {
-        maven(MavenPublication) {
+        mavenPublication(MavenPublication) {
             groupId = 'com.bibekaryal'
             artifactId = 'shdsvc'
             from components.java
@@ -124,5 +124,42 @@ publishing {
                 }
             }
         }
+    }
+}
+
+tasks.register('buildAndPublish') {
+    dependsOn clean, jar, sourcesJar, javadocJar, publishToMavenLocal, signArchives
+
+    doLast {
+        // Copy pom-default.xml to libs folder
+        def libsDir = file("${buildDir}/libs")
+        def pomFile = file("${buildDir}/publications/mavenPublication/pom-default.xml")
+        def destFile = file("${libsDir}/${archivesBaseName}-${version}.pom.xml")
+
+        copy {
+            from pomFile
+            into libsDir
+            rename { destFile.name }
+        }
+
+        // Create .asc, .md5, and .sha1 files
+        def pomAsciiFile = file("${libsDir}/${archivesBaseName}-${version}.pom.asc")
+        def pomMd5File = file("${libsDir}/${archivesBaseName}-${version}.pom.md5")
+        def pomSha1File = file("${libsDir}/${archivesBaseName}-${version}.pom.sha1")
+
+        // Create .asc file
+        signArchives.signatureFiles.each { signatureFile ->
+            if (signatureFile.name.endsWith('.asc')) {
+                copy {
+                    from signatureFile
+                    into libsDir
+                    rename { pomAsciiFile.name }
+                }
+            }
+        }
+
+        // Create .md5 and .sha1 files
+        ant.checksum(file: destFile, algorithm: 'md5', fileext: '.md5')
+        ant.checksum(file: destFile, algorithm: 'sha1', fileext: '.sha1')
     }
 }
