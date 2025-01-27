@@ -15,7 +15,7 @@ import java.util.Properties;
 public class CommonUtilities {
 
   private static final ObjectMapper OBJECT_MAPPER;
-  private static Map<String, String> propertiesMap;
+  private static Map<String, String> propertiesMap = new HashMap<>();
 
   static {
     OBJECT_MAPPER = new ObjectMapper();
@@ -84,14 +84,17 @@ public class CommonUtilities {
   }
 
   public static boolean isEmpty(final Collection<?> c) {
-    return (c == null || c.isEmpty());
+    return c == null || c.isEmpty();
   }
 
   public static boolean isEmpty(final Map<?, ?> m) {
-    return (m == null || m.isEmpty());
+    return m == null || m.isEmpty();
   }
 
   public static String getBasicAuth(final String appUsername, final String appPassword) {
+    if (isEmpty(appUsername) || isEmpty(appPassword)) {
+      throw new IllegalArgumentException("UserName or Password is Missing...");
+    }
     return "Basic "
         + Base64.getEncoder()
             .encodeToString((appUsername + ":" + appPassword).getBytes(StandardCharsets.UTF_8));
@@ -103,7 +106,7 @@ public class CommonUtilities {
 
   public static String writeValueAsStringNoEx(final Object value) {
     try {
-      return objectMapperProvider().writeValueAsString(value);
+      return OBJECT_MAPPER.writeValueAsString(value);
     } catch (Exception ignored) {
       return value.toString();
     }

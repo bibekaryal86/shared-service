@@ -16,15 +16,17 @@ dependencies {
     // api dependency is exported to consumers, that is to say found on their compile classpath.
     // implementation dependency is used internally, and not exposed to consumers on their own compile classpath.
     api 'com.fasterxml.jackson.core:jackson-databind:2.18.2'
+
     implementation 'com.squareup.okhttp3:okhttp:4.12.0'
     implementation 'com.mailjet:mailjet-client:5.2.5'
 
-    // logging
     implementation 'org.slf4j:slf4j-api:2.0.16'
     implementation 'ch.qos.logback:logback-classic:1.5.16'
 
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.11.3'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.11.3'
+    testImplementation 'org.mockito:mockito-core:5.5.0'
+    testImplementation 'com.squareup.okhttp3:mockwebserver:4.12.0'
 }
 
 java {
@@ -41,8 +43,6 @@ repositories {
 
 test {
     useJUnitPlatform { options ->
-        options.includeTags 'fast'
-        options.excludeTags 'slow'
         options.includeEngines 'junit-jupiter'
         options.excludeEngines 'junit-vintage'
     }

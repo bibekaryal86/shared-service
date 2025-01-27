@@ -1,6 +1,7 @@
 package shared.service;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Timer;
@@ -15,7 +16,7 @@ import shared.service.helpers.CommonUtilities;
 public class AppEnvProperty {
   private static final Logger logger = LoggerFactory.getLogger(AppEnvProperty.class);
 
-  private static List<EnvDetailsResponse.EnvDetails> ENV_DETAILS_LIST;
+  private static List<EnvDetailsResponse.EnvDetails> ENV_DETAILS_LIST = new ArrayList<>();
   private static Timer timer;
   public static final String APP_DETAILS_URL = "APP_DETAILS_URL";
   public static final String ENVSVC_USR = "ENVSVC_USR";
@@ -75,7 +76,10 @@ public class AppEnvProperty {
 
     if (response.statusCode() == 200) {
       final EnvDetailsResponse envDetailsResponse = response.responseBody();
+      System.out.println("BEFORE");
+      System.out.println(CommonUtilities.isEmpty(envDetailsResponse.getErrMsg()));
       if (CommonUtilities.isEmpty(envDetailsResponse.getErrMsg())) {
+        System.out.println("INSIDE");
         ENV_DETAILS_LIST = envDetailsResponse.getEnvDetails();
       } else {
         logger.error(
