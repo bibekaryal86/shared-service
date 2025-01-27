@@ -12,3 +12,10 @@ This module supports the following shared services:
 This will be published to Maven Central Repository after which it can be used as dependency in any project.
 
 GitHub Repository: https://github.com/bibekaryal86/shared-service
+
+Follow these steps (to be simplified/automated later) to generate the files required to publish to Maven Central
+* ./gradlew clean
+* ./gradlew jar
+* ./gradlew sourcesJar
+* ./gradlew javadocJar
+* ./gradlew signArchives
