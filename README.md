@@ -10,3 +10,5 @@ This module supports the following shared services:
   parameter
 
 This will be published to Maven Central Repository after which it can be used as dependency in any project.
+
+GitHub Repository: https://github.com/bibekaryal86/shared-service
