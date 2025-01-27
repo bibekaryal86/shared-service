@@ -131,7 +131,7 @@ publishing {
 tasks.register('copyAndRenamePom') {
     doLast {
     def pomFile = file("${buildDir}/publications/mavenPublication/pom-default.xml")
-    def destinationFile = file("${buildDir}/libs/${archivesBaseName}-${version}.pom.xml")
+    def destinationFile = file("${buildDir}/libs/${archivesBaseName}-${version}.pom")
     copy {
         from pomFile
         into destinationFile.parent
@@ -145,7 +145,7 @@ tasks.register('copyAndRenamePom') {
 // Task to generate checksums and signatures for the POM file
 tasks.register('signAndChecksumPom') {
     doLast {
-        def pomFile = file("${buildDir}/libs/${archivesBaseName}-${version}.pom.xml")
+        def pomFile = file("${buildDir}/libs/${archivesBaseName}-${version}.pom")
 
         // Generate .md5 and .sha1 checksums
         ant.checksum(file: pomFile, algorithm: 'MD5', fileext: '.md5')
