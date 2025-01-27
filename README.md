@@ -1,2 +1,12 @@
 # shared-service
-This will be the common module shared across repositories with shared services like email, http connector, etc.
+
+This will be the common module shared across repositories with shared services.
+
+This module supports the following shared services:
+
+* AppEnvProperty.java: Retrieves and manages dynamic application variables retrieved from an API
+* Connector.java: OkHttp client helper utility
+* Email.java: Utility to send email using Mailjet. Because of required Mailjet secrets, Mailjet client is required
+  parameter
+
+This will be published to Maven Central Repository after which it can be used as dependency in any project.
