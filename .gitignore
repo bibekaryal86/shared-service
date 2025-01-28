@@ -25,9 +25,10 @@ build
 
 # IDE project settings
 .idea
-*.gpg
-gradle.properties
 
+# build/publish related
+*.gpg
+*.properties
 *.zip
 *.md5
 *.sha1
