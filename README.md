@@ -11,16 +11,13 @@ This module supports the following shared services:
 
 This will be published to Maven Central Repository after which it can be used as dependency in any project.
 
-GitHub Repository: https://github.com/bibekaryal86/shared-service
+An account has been setup in Maven Central Repository (https://central.sonatype.com/publishing/namespaces) to publish to
+the repo so that it can be used as a dependency in other services. SonaType does not support direct gradle publishing
+without third party plugins, so currently this is a manual process. But next step is to utilize their Publishing API to
+publish new versions manually.
 
-Follow these steps (to be simplified/automated later) to generate the files required to publish to Maven Central
-* ./gradlew clean
-* ./gradlew jar
-* ./gradlew sourcesJar
-* ./gradlew javadocJar
-* ./gradlew signArchives
-* ./gradlew generatePomFileForMavenPublication
-* ABOVE ALL REPLACED BY SINGLE ./gradlew buildAndPublish
+### Publishing Process
 
-./gradlew buildAndPublish works and creates a zip file in build/distributions folder
-
+* `./gradlew buildAndPublish` task command builds and creates the zip file to upload to SonaType to publish
+* The task builds, creates and packages javadoc, packages sources and application jar, signs, applies gpg key
+* gpg key details are added in `gradle.properties`

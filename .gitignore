@@ -27,3 +27,7 @@ build
 .idea
 *.gpg
 gradle.properties
+
+*.zip
+*.md5
+*.sha1
