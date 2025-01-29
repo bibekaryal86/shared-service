@@ -5,6 +5,8 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import io.github.bibekaryal86.shdsvc.dtos.Enums;
+import io.github.bibekaryal86.shdsvc.dtos.HttpResponse;
 import java.io.IOException;
 import java.util.Map;
 import okhttp3.mockwebserver.MockResponse;
@@ -13,8 +15,6 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockitoAnnotations;
-import io.github.bibekaryal86.shdsvc.dtos.Enums;
-import io.github.bibekaryal86.shdsvc.dtos.HttpResponse;
 
 public class ConnectorTest {
 

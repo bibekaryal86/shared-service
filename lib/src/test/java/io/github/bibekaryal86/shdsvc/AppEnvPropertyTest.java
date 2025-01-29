@@ -9,14 +9,14 @@ import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import io.github.bibekaryal86.shdsvc.dtos.EnvDetailsResponse;
+import io.github.bibekaryal86.shdsvc.dtos.HttpResponse;
+import io.github.bibekaryal86.shdsvc.helpers.CommonUtilities;
 import java.util.List;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
-import io.github.bibekaryal86.shdsvc.dtos.EnvDetailsResponse;
-import io.github.bibekaryal86.shdsvc.dtos.HttpResponse;
-import io.github.bibekaryal86.shdsvc.helpers.CommonUtilities;
 
 public class AppEnvPropertyTest {
 
@@ -27,7 +27,7 @@ public class AppEnvPropertyTest {
   void setUp() {
     // Mock CommonUtilities
     mockCommonUtilitiesStatic = mockStatic(CommonUtilities.class);
-    when(CommonUtilities.getSystemEnvProperty(AppEnvProperty.APP_DETAILS_URL))
+    when(CommonUtilities.getSystemEnvProperty(AppEnvProperty.APP_DETAILS_URL_BASE))
         .thenReturn("http://mock-api-url.com");
     when(CommonUtilities.getSystemEnvProperty(AppEnvProperty.ENVSVC_USR)).thenReturn("mockUser");
     when(CommonUtilities.getSystemEnvProperty(AppEnvProperty.ENVSVC_PWD)).thenReturn("mockPass");
@@ -65,7 +65,7 @@ public class AppEnvPropertyTest {
         .thenReturn(mockResponse);
 
     // Act
-    List<EnvDetailsResponse.EnvDetails> result = AppEnvProperty.getEnvDetailsList();
+    List<EnvDetailsResponse.EnvDetails> result = AppEnvProperty.getEnvDetailsList("some-app");
 
     // Assert
     assertNotNull(result, "Result should not be null");
@@ -88,7 +88,7 @@ public class AppEnvPropertyTest {
         .thenReturn(mockResponse);
 
     // Act
-    List<EnvDetailsResponse.EnvDetails> result = AppEnvProperty.getEnvDetailsList();
+    List<EnvDetailsResponse.EnvDetails> result = AppEnvProperty.getEnvDetailsList("some-app");
 
     // Assert
     assertEquals(0, result.size());

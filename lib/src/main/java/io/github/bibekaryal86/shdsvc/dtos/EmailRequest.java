@@ -1,10 +1,10 @@
 package io.github.bibekaryal86.shdsvc.dtos;
 
+import io.github.bibekaryal86.shdsvc.helpers.CommonUtilities;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
-import io.github.bibekaryal86.shdsvc.helpers.CommonUtilities;
 
 public record EmailRequest(
     EmailContact emailFrom,

@@ -4,14 +4,14 @@ import com.mailjet.client.MailjetClient;
 import com.mailjet.client.MailjetRequest;
 import com.mailjet.client.MailjetResponse;
 import com.mailjet.client.resource.Emailv31;
+import io.github.bibekaryal86.shdsvc.dtos.EmailRequest;
+import io.github.bibekaryal86.shdsvc.helpers.CommonUtilities;
 import java.util.List;
 import java.util.UUID;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import io.github.bibekaryal86.shdsvc.dtos.EmailRequest;
-import io.github.bibekaryal86.shdsvc.helpers.CommonUtilities;
 
 public class Email {
   private static final Logger logger = LoggerFactory.getLogger(Email.class);

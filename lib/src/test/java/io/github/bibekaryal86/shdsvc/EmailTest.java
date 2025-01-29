@@ -12,6 +12,7 @@ import static org.mockito.Mockito.when;
 import com.mailjet.client.MailjetClient;
 import com.mailjet.client.MailjetRequest;
 import com.mailjet.client.MailjetResponse;
+import io.github.bibekaryal86.shdsvc.dtos.EmailRequest;
 import java.util.List;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -20,7 +21,6 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import io.github.bibekaryal86.shdsvc.dtos.EmailRequest;
 
 public class EmailTest {
   private Email email;
