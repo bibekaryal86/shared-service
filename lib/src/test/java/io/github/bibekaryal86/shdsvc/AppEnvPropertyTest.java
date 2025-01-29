@@ -27,7 +27,7 @@ public class AppEnvPropertyTest {
   void setUp() {
     // Mock CommonUtilities
     mockCommonUtilitiesStatic = mockStatic(CommonUtilities.class);
-    when(CommonUtilities.getSystemEnvProperty(AppEnvProperty.APP_DETAILS_URL_BASE))
+    when(CommonUtilities.getSystemEnvProperty(AppEnvProperty.ENVSVC_BASE_URL))
         .thenReturn("http://mock-api-url.com");
     when(CommonUtilities.getSystemEnvProperty(AppEnvProperty.ENVSVC_USR)).thenReturn("mockUser");
     when(CommonUtilities.getSystemEnvProperty(AppEnvProperty.ENVSVC_PWD)).thenReturn("mockPass");

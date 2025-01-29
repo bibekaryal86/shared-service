@@ -41,7 +41,7 @@ public class Connector {
 
     try (Response response = okHttpClient.newCall(request).execute()) {
       int responseCode = response.code();
-      if (response.body() == null) {
+      if (response.body() == null || response.body().contentLength() == 0) {
         return new HttpResponse<>(responseCode, null);
       }
       T responseBody =

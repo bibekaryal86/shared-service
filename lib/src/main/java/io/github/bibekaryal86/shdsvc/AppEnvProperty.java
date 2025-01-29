@@ -18,13 +18,12 @@ public class AppEnvProperty {
 
   private static List<EnvDetailsResponse.EnvDetails> ENV_DETAILS_LIST = new ArrayList<>();
   private static Timer timer;
-  public static final String APP_DETAILS_URL_BASE = "APP_DETAILS_URL_BASE";
+  public static final String ENVSVC_BASE_URL = "ENVSVC_BASE_URL";
   public static final String ENVSVC_USR = "ENVSVC_USR";
   public static final String ENVSVC_PWD = "ENVSVC_USR";
   public static final long REFRESH_INTERVAL = 5 * 60 * 1000; // every 5 minutes
 
-  private static final String API_URL_BASE =
-      CommonUtilities.getSystemEnvProperty(APP_DETAILS_URL_BASE);
+  private static final String API_URL_BASE = CommonUtilities.getSystemEnvProperty(ENVSVC_BASE_URL);
   private static final String API_AUTH =
       CommonUtilities.getBasicAuth(
           CommonUtilities.getSystemEnvProperty(ENVSVC_USR),
