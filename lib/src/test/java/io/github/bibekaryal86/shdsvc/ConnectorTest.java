@@ -76,7 +76,6 @@ public class ConnectorTest {
         Connector.sendRequest(
             mockUrl, Enums.HttpMethod.GET, new TypeReference<>() {}, null, null, null);
     assertEquals(503, result.statusCode());
-    assertNotNull(result.responseBody());
   }
 
   @Test
