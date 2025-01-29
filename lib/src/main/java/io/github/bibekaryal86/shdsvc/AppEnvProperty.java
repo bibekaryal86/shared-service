@@ -20,7 +20,7 @@ public class AppEnvProperty {
   private static Timer timer;
   public static final String ENVSVC_BASE_URL = "ENVSVC_BASE_URL";
   public static final String ENVSVC_USR = "ENVSVC_USR";
-  public static final String ENVSVC_PWD = "ENVSVC_USR";
+  public static final String ENVSVC_PWD = "ENVSVC_PWD";
   public static final long REFRESH_INTERVAL = 5 * 60 * 1000; // every 5 minutes
 
   private static final String API_URL_BASE = CommonUtilities.getSystemEnvProperty(ENVSVC_BASE_URL);
@@ -65,7 +65,7 @@ public class AppEnvProperty {
 
   private static void setEnvDetailsList(final String appName) {
     logger.debug("Retrieving Env Details...");
-    final String url = API_URL_BASE + "/envsvc/api/v1/" + appName;
+    final String url = API_URL_BASE + "/api/v1/" + appName;
     HttpResponse<EnvDetailsResponse> response =
         Connector.sendRequest(
             url,
