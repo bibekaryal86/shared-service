@@ -1,5 +1,6 @@
 package io.github.bibekaryal86.shdsvc;
 
+import com.mailjet.client.ClientOptions;
 import com.mailjet.client.MailjetClient;
 import com.mailjet.client.MailjetRequest;
 import com.mailjet.client.MailjetResponse;
@@ -16,11 +17,14 @@ import org.slf4j.LoggerFactory;
 public class Email {
   private static final Logger logger = LoggerFactory.getLogger(Email.class);
 
-  private final MailjetClient mailjetClient;
+  public static final String ENV_MJ_PUB_KEY = "MJ_PUBLIC";
+  public static final String ENV_MJ_PVT_KEY = "MJ_PRIVATE";
 
-  public Email(MailjetClient mailjetClient) {
-    this.mailjetClient = mailjetClient;
-  }
+  private static final MailjetClient mailjetClient = new MailjetClient(
+          ClientOptions.builder()
+            .apiKey(CommonUtilities.getSystemEnvProperty(ENV_MJ_PUB_KEY))
+          .apiSecretKey(CommonUtilities.getSystemEnvProperty(ENV_MJ_PVT_KEY))
+          .build());
 
   public void sendEmail(final EmailRequest emailRequest) {
     final UUID requestId = UUID.randomUUID();
