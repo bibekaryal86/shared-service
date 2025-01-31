@@ -65,7 +65,7 @@ public class AppEnvPropertyTest {
         .thenReturn(mockResponse);
 
     // Act
-    List<EnvDetailsResponse.EnvDetails> result = AppEnvProperty.getEnvDetailsList("some-app");
+    List<EnvDetailsResponse.EnvDetails> result = AppEnvProperty.getEnvDetailsList("some-app", true);
 
     // Assert
     assertNotNull(result, "Result should not be null");
@@ -88,7 +88,7 @@ public class AppEnvPropertyTest {
         .thenReturn(mockResponse);
 
     // Act
-    List<EnvDetailsResponse.EnvDetails> result = AppEnvProperty.getEnvDetailsList("some-app");
+    List<EnvDetailsResponse.EnvDetails> result = AppEnvProperty.getEnvDetailsList("some-app", false);
 
     // Assert
     assertEquals(0, result.size());

@@ -56,8 +56,16 @@ public class AppEnvProperty {
                 }));
   }
 
+  @Deprecated(since = "0.1.2")
   public static List<EnvDetailsResponse.EnvDetails> getEnvDetailsList(final String appName) {
     if (CommonUtilities.isEmpty(ENV_DETAILS_LIST)) {
+      setEnvDetailsList(appName);
+    }
+    return ENV_DETAILS_LIST;
+  }
+
+  public static List<EnvDetailsResponse.EnvDetails> getEnvDetailsList(final String appName, final boolean isRefreshNow) {
+    if (isRefreshNow || CommonUtilities.isEmpty(ENV_DETAILS_LIST)) {
       setEnvDetailsList(appName);
     }
     return ENV_DETAILS_LIST;
