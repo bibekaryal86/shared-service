@@ -20,11 +20,12 @@ public class Email {
   public static final String ENV_MJ_PUB_KEY = "MJ_PUBLIC";
   public static final String ENV_MJ_PVT_KEY = "MJ_PRIVATE";
 
-  private static final MailjetClient mailjetClient = new MailjetClient(
+  private static final MailjetClient mailjetClient =
+      new MailjetClient(
           ClientOptions.builder()
-            .apiKey(CommonUtilities.getSystemEnvProperty(ENV_MJ_PUB_KEY))
-          .apiSecretKey(CommonUtilities.getSystemEnvProperty(ENV_MJ_PVT_KEY))
-          .build());
+              .apiKey(CommonUtilities.getSystemEnvProperty(ENV_MJ_PUB_KEY))
+              .apiSecretKey(CommonUtilities.getSystemEnvProperty(ENV_MJ_PVT_KEY))
+              .build());
 
   public void sendEmail(final EmailRequest emailRequest) {
     final UUID requestId = UUID.randomUUID();
