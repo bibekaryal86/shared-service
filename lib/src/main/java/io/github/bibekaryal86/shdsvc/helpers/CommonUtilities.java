@@ -115,7 +115,7 @@ public class CommonUtilities {
     }
   }
 
-  private static byte[] writeValueAsBytesNoEx(final Object object) {
+  public static byte[] writeValueAsBytesNoEx(final Object object) {
     try {
       return CommonUtilities.objectMapperProvider().writeValueAsBytes(object);
     } catch (JsonProcessingException ex) {
