@@ -200,7 +200,7 @@ public class CommonUtilitiesTest {
   @Test
   void readValueNoEx_nullJson_returnsNull() {
     TypeReference<Map<String, String>> typeRef = new TypeReference<>() {};
-    Map<String, String> result = CommonUtilities.readValueNoEx(null, typeRef);
+    Map<String, String> result = CommonUtilities.readValueNoEx("", typeRef);
 
     assertNull(result, "Expected readValueNoEx to return null for null JSON input.");
   }

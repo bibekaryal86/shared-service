@@ -1,8 +1,10 @@
 package io.github.bibekaryal86.shdsvc.helpers;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Collection;
@@ -20,6 +22,7 @@ public class CommonUtilities {
   static {
     OBJECT_MAPPER = new ObjectMapper();
     OBJECT_MAPPER.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    OBJECT_MAPPER.registerModule(new JavaTimeModule());
   }
 
   public static String getSystemEnvProperty(final String key, final String defaultValue) {
@@ -112,9 +115,25 @@ public class CommonUtilities {
     }
   }
 
+  private static byte[] writeValueAsBytesNoEx(final Object object) {
+    try {
+      return CommonUtilities.objectMapperProvider().writeValueAsBytes(object);
+    } catch (JsonProcessingException ex) {
+      return new byte[0];
+    }
+  }
+
   // single object input param: new TypeReference<SomeClass>() {}
   // list of objects input param: new TypeReference<List<Person>>() {}
   public static <T> T readValueNoEx(final String content, final TypeReference<T> valueTypeRef) {
+    try {
+      return OBJECT_MAPPER.readValue(content, valueTypeRef);
+    } catch (Exception ignored) {
+      return null;
+    }
+  }
+
+  public static <T> T readValueNoEx(final byte[] content, final TypeReference<T> valueTypeRef) {
     try {
       return OBJECT_MAPPER.readValue(content, valueTypeRef);
     } catch (Exception ignored) {
