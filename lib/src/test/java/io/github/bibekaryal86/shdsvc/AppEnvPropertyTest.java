@@ -88,7 +88,8 @@ public class AppEnvPropertyTest {
         .thenReturn(mockResponse);
 
     // Act
-    List<EnvDetailsResponse.EnvDetails> result = AppEnvProperty.getEnvDetailsList("some-app", false);
+    List<EnvDetailsResponse.EnvDetails> result =
+        AppEnvProperty.getEnvDetailsList("some-app", false);
 
     // Assert
     assertEquals(0, result.size());

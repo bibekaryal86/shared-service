@@ -51,7 +51,9 @@ public class Connector {
       logger.error("Send Request: [{}]|[{}]", method, url, ex);
       @SuppressWarnings("unchecked")
       T fallbackResponse =
-          (T) new ResponseMetadata(new ResponseMetadata.ResponseStatusInfo(ex.getMessage()));
+          (T)
+              new ResponseMetadata(
+                  new ResponseMetadata.ResponseStatusInfo(ex.getMessage()), null, null);
       ;
       return new HttpResponse<>(503, fallbackResponse);
     }

@@ -64,7 +64,8 @@ public class AppEnvProperty {
     return ENV_DETAILS_LIST;
   }
 
-  public static List<EnvDetailsResponse.EnvDetails> getEnvDetailsList(final String appName, final boolean isRefreshNow) {
+  public static List<EnvDetailsResponse.EnvDetails> getEnvDetailsList(
+      final String appName, final boolean isRefreshNow) {
     if (isRefreshNow || CommonUtilities.isEmpty(ENV_DETAILS_LIST)) {
       setEnvDetailsList(appName);
     }
