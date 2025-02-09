@@ -55,16 +55,24 @@ public class Email {
             .put(Emailv31.Message.FROM, emailContactJSONObject(emailRequest.emailFrom()))
             .put(Emailv31.Message.TO, emailContactsJSONArray(emailRequest.emailToList()));
 
-    if (!emailRequest.emailCcList().isEmpty()) {
+    if (!CommonUtilities.isEmpty(emailRequest.emailCcList())) {
       message.put(Emailv31.Message.CC, emailContactsJSONArray(emailRequest.emailCcList()));
     }
 
-    if (!CommonUtilities.isEmpty(emailRequest.emailContent().text())) {
-      message.put(Emailv31.Message.TEXTPART, emailRequest.emailContent().text());
-    }
+    if (emailRequest.emailContent() != null) {
+      EmailRequest.EmailContent emailContent = emailRequest.emailContent();
 
-    if (!CommonUtilities.isEmpty(emailRequest.emailContent().html())) {
-      message.put(Emailv31.Message.HTMLPART, emailRequest.emailContent().html());
+      if (!CommonUtilities.isEmpty(emailContent.subject())) {
+        message.put(Emailv31.Message.SUBJECT, emailContent.subject());
+      }
+
+      if (!CommonUtilities.isEmpty(emailRequest.emailContent().text())) {
+        message.put(Emailv31.Message.TEXTPART, emailRequest.emailContent().text());
+      }
+
+      if (!CommonUtilities.isEmpty(emailRequest.emailContent().html())) {
+        message.put(Emailv31.Message.HTMLPART, emailRequest.emailContent().html());
+      }
     }
 
     if (!CommonUtilities.isEmpty(emailRequest.emailAttachments())) {
