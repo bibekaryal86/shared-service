@@ -67,7 +67,7 @@ public class Email {
       message.put(Emailv31.Message.HTMLPART, emailRequest.emailContent().html());
     }
 
-    if (!emailRequest.emailAttachments().isEmpty()) {
+    if (!CommonUtilities.isEmpty(emailRequest.emailAttachments())) {
       message.put(
           Emailv31.Message.ATTACHMENTS, emailAttachmentsJSONArray(emailRequest.emailAttachments()));
     }
