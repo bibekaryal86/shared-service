@@ -6,6 +6,8 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+
+import java.lang.reflect.Field;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Collection;
@@ -148,6 +150,26 @@ public class CommonUtilities {
       return Integer.parseInt(value);
     } catch (Exception ignored) {
       return 0;
+    }
+  }
+
+  public static void convert(Object source, Object destination, List<String> exclusions) {
+    Field[] sourceFields = source.getClass().getDeclaredFields();
+    Field[] destinationFields = destination.getClass().getDeclaredFields();
+
+    for (Field sourceField : sourceFields) {
+      for (Field destinationField : destinationFields) {
+        if (sourceField.getName().equals(destinationField.getName())
+                && !exclusions.contains(sourceField.getName())) {
+          try {
+            sourceField.setAccessible(true);
+            destinationField.setAccessible(true);
+            destinationField.set(destination, sourceField.get(source));
+          } catch (IllegalAccessException e) {
+            throw new RuntimeException(e);
+          }
+        }
+      }
     }
   }
 }
