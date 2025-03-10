@@ -6,7 +6,6 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-
 import java.lang.reflect.Field;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
@@ -160,7 +159,7 @@ public class CommonUtilities {
     for (Field sourceField : sourceFields) {
       for (Field destinationField : destinationFields) {
         if (sourceField.getName().equals(destinationField.getName())
-                && !exclusions.contains(sourceField.getName())) {
+            && !exclusions.contains(sourceField.getName())) {
           try {
             sourceField.setAccessible(true);
             destinationField.setAccessible(true);
