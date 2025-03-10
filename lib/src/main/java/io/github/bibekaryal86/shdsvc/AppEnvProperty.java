@@ -84,7 +84,7 @@ public class AppEnvProperty {
             Collections.emptyMap(),
             null);
 
-    if (response.statusCode() == 200) {
+    if (response.statusCode() == 200 && response.responseBody() != null) {
       final EnvDetailsResponse envDetailsResponse = response.responseBody();
       if (CommonUtilities.isEmpty(envDetailsResponse.getErrMsg())) {
         ENV_DETAILS_LIST = envDetailsResponse.getEnvDetails();
@@ -93,7 +93,10 @@ public class AppEnvProperty {
             "Failed to Fetch Env Details, Error Response: [{}]", envDetailsResponse.getErrMsg());
       }
     } else {
-      logger.error("Failed to Fetch Env Details, Response: [{}]", response.statusCode());
+      logger.error(
+          "Failed to Fetch Env Details, Response: [{}] | [{}]",
+          response.statusCode(),
+          response.responseBody() == null);
     }
   }
 }
