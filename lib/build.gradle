@@ -63,7 +63,7 @@ spotless {
 // Generate the application JAR (default behavior of the 'java' plugin)
 // Set the base name and version for the project
 archivesBaseName = 'shdsvc'
-version = '0.1.9'
+version = '1.0.0'
 
 jar {
     archiveClassifier = ''
