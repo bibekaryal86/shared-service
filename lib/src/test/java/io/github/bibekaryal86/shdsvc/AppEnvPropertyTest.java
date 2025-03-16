@@ -12,6 +12,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import io.github.bibekaryal86.shdsvc.dtos.EnvDetailsResponse;
 import io.github.bibekaryal86.shdsvc.dtos.HttpResponse;
 import io.github.bibekaryal86.shdsvc.helpers.CommonUtilities;
+import java.util.Collections;
 import java.util.List;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -56,7 +57,8 @@ public class AppEnvPropertyTest {
     envDetail.setName("some-name");
     envDetailsResponse.setErrMsg("");
     envDetailsResponse.setEnvDetails(List.of(envDetail));
-    HttpResponse<EnvDetailsResponse> mockResponse = new HttpResponse<>(200, envDetailsResponse);
+    HttpResponse<EnvDetailsResponse> mockResponse =
+        new HttpResponse<>(200, envDetailsResponse, Collections.emptyMap());
 
     // mocks
     when(CommonUtilities.isEmpty(anyList())).thenReturn(true);
@@ -79,7 +81,8 @@ public class AppEnvPropertyTest {
     EnvDetailsResponse envDetailsResponse = new EnvDetailsResponse();
     envDetailsResponse.setErrMsg("some-error-message");
     envDetailsResponse.setEnvDetails(List.of());
-    HttpResponse<EnvDetailsResponse> mockResponse = new HttpResponse<>(200, envDetailsResponse);
+    HttpResponse<EnvDetailsResponse> mockResponse =
+        new HttpResponse<>(200, envDetailsResponse, Collections.emptyMap());
 
     // mocks
     when(CommonUtilities.isEmpty(anyList())).thenReturn(true);
