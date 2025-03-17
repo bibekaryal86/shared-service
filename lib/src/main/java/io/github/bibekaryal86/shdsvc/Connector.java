@@ -5,9 +5,11 @@ import io.github.bibekaryal86.shdsvc.dtos.Enums;
 import io.github.bibekaryal86.shdsvc.dtos.HttpResponse;
 import io.github.bibekaryal86.shdsvc.helpers.CommonUtilities;
 import io.github.bibekaryal86.shdsvc.helpers.OkHttpLogging;
+import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 import okhttp3.ConnectionPool;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
@@ -40,15 +42,22 @@ public class Connector {
 
     try (Response response = okHttpClient.newCall(request).execute()) {
       int responseCode = response.code();
+
+      Map<String, String> xResponseHeaders =
+          response.headers().toMultimap().entrySet().stream()
+              .filter(entry -> entry.getKey().toLowerCase().startsWith("x-"))
+              .collect(Collectors.toMap(Map.Entry::getKey, entry -> entry.getValue().getFirst()));
+
       if (response.body() == null || response.body().contentLength() == 0) {
-        return new HttpResponse<>(responseCode, null);
+        return new HttpResponse<>(responseCode, null, xResponseHeaders);
       }
+
       T responseBody =
           CommonUtilities.objectMapperProvider().readValue(response.body().string(), valueTypeRef);
-      return new HttpResponse<>(responseCode, responseBody);
+      return new HttpResponse<>(responseCode, responseBody, xResponseHeaders);
     } catch (Exception ex) {
       logger.error("Send Request: [{}]|[{}]", method, url, ex);
-      return new HttpResponse<>(503, null);
+      return new HttpResponse<>(503, null, Collections.emptyMap());
     }
   }
 
