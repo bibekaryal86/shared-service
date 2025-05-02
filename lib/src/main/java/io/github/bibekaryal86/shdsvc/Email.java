@@ -6,6 +6,7 @@ import com.mailjet.client.MailjetRequest;
 import com.mailjet.client.MailjetResponse;
 import com.mailjet.client.resource.Emailv31;
 import io.github.bibekaryal86.shdsvc.dtos.EmailRequest;
+import io.github.bibekaryal86.shdsvc.dtos.EmailResponse;
 import io.github.bibekaryal86.shdsvc.helpers.CommonUtilities;
 import java.util.List;
 import java.util.UUID;
@@ -27,7 +28,7 @@ public class Email {
               .apiSecretKey(CommonUtilities.getSystemEnvProperty(ENV_MJ_PVT_KEY))
               .build());
 
-  public void sendEmail(final EmailRequest emailRequest) {
+  public EmailResponse sendEmail(final EmailRequest emailRequest) {
     final UUID requestId = UUID.randomUUID();
     logger.debug("[{}] Request: [{}]", requestId, emailRequest);
 
@@ -43,8 +44,16 @@ public class Email {
           requestId,
           response.getStatus(),
           response.getRawResponseContent());
+
+      return new EmailResponse(
+          requestId.toString(),
+          response.getStatus(),
+          response.getCount(),
+          response.getTotal(),
+          response.getRawResponseContent());
     } catch (Exception ex) {
       logger.error("[{}] Send Email...", requestId, ex);
+      return new EmailResponse(requestId.toString(), 0, 0, 0, ex.getMessage());
     }
   }
 
