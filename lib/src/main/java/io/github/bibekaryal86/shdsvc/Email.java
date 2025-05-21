@@ -40,7 +40,8 @@ public class Email {
               .build());
 
   private static final MailgunMessagesApi mailgunMessagesApi =
-      MailgunClient.config(ENV_MG_API_KEY).createApi(MailgunMessagesApi.class);
+      MailgunClient.config(CommonUtilities.getSystemEnvProperty(ENV_MG_API_KEY))
+          .createApi(MailgunMessagesApi.class);
 
   public EmailResponse sendEmail(final EmailRequest emailRequest) {
     final UUID requestId = UUID.randomUUID();
@@ -81,7 +82,8 @@ public class Email {
       messageBuilder.attachment(attachments);
 
       MessageResponse messageResponse =
-          mailgunMessagesApi.sendMessage(ENV_MG_DOMAIN, messageBuilder.build());
+          mailgunMessagesApi.sendMessage(
+              CommonUtilities.getSystemEnvProperty(ENV_MG_DOMAIN), messageBuilder.build());
       return new EmailResponse(messageResponse.getId(), 200, 0, 0, messageResponse.getMessage());
 
     } catch (Exception ex) {
@@ -92,7 +94,7 @@ public class Email {
     }
   }
 
-  private JSONObject buildMailjetMessage(EmailRequest emailRequest, UUID requestId) {
+  private JSONObject buildMailjetMessage(final EmailRequest emailRequest, final UUID requestId) {
     final JSONObject message =
         new JSONObject()
             .put(Emailv31.Message.CUSTOMID, requestId)
@@ -104,7 +106,7 @@ public class Email {
     }
 
     if (emailRequest.emailContent() != null) {
-      EmailRequest.EmailContent emailContent = emailRequest.emailContent();
+      final EmailRequest.EmailContent emailContent = emailRequest.emailContent();
 
       if (!CommonUtilities.isEmpty(emailContent.subject())) {
         message.put(Emailv31.Message.SUBJECT, emailContent.subject());
@@ -144,7 +146,7 @@ public class Email {
   private JSONArray emailAttachmentsJSONArray(
       final List<EmailRequest.EmailAttachment> emailAttachments) {
     final JSONArray jsonArray = new JSONArray();
-    for (EmailRequest.EmailAttachment emailAttachment : emailAttachments) {
+    for (final EmailRequest.EmailAttachment emailAttachment : emailAttachments) {
       jsonArray.put(
           new JSONObject()
               .put(
@@ -158,8 +160,8 @@ public class Email {
     return jsonArray;
   }
 
-  private Message.MessageBuilder buildMailgunMessage(EmailRequest emailRequest) {
-    Message.MessageBuilder messageBuilder =
+  private Message.MessageBuilder buildMailgunMessage(final EmailRequest emailRequest) {
+    final Message.MessageBuilder messageBuilder =
         Message.builder()
             .from(emailRequest.emailFrom().emailAddress())
             .to(
@@ -193,7 +195,7 @@ public class Email {
   }
 
   private static List<File> createAttachmentFilesNoEx(
-      List<EmailRequest.EmailAttachment> emailAttachments) {
+      final List<EmailRequest.EmailAttachment> emailAttachments) {
     try {
       return createTemporaryFiles(emailAttachments);
     } catch (Exception ex) {
@@ -203,11 +205,11 @@ public class Email {
   }
 
   private static List<File> createTemporaryFiles(
-      List<EmailRequest.EmailAttachment> emailAttachments) throws IOException {
-    List<File> temporaryFiles = new ArrayList<>();
-    for (EmailRequest.EmailAttachment emailAttachment : emailAttachments) {
-      File tempFile = File.createTempFile("attachment_", "_" + emailAttachment.fileName());
-      try (FileWriter writer = new FileWriter(tempFile)) {
+      final List<EmailRequest.EmailAttachment> emailAttachments) throws IOException {
+    final List<File> temporaryFiles = new ArrayList<>();
+    for (final EmailRequest.EmailAttachment emailAttachment : emailAttachments) {
+      final File tempFile = File.createTempFile("attachment_", "_" + emailAttachment.fileName());
+      try (final FileWriter writer = new FileWriter(tempFile)) {
         writer.write(emailAttachment.fileContent());
       }
       temporaryFiles.add(tempFile);
@@ -215,7 +217,7 @@ public class Email {
     return temporaryFiles;
   }
 
-  private static void deleteTemporaryFiles(List<File> files) {
+  private static void deleteTemporaryFiles(final List<File> files) {
     for (File file : files) {
       file.delete();
     }
