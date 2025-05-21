@@ -1,5 +1,9 @@
 package io.github.bibekaryal86.shdsvc;
 
+import com.mailgun.api.v3.MailgunMessagesApi;
+import com.mailgun.client.MailgunClient;
+import com.mailgun.model.message.Message;
+import com.mailgun.model.message.MessageResponse;
 import com.mailjet.client.ClientOptions;
 import com.mailjet.client.MailjetClient;
 import com.mailjet.client.MailjetRequest;
@@ -8,6 +12,11 @@ import com.mailjet.client.resource.Emailv31;
 import io.github.bibekaryal86.shdsvc.dtos.EmailRequest;
 import io.github.bibekaryal86.shdsvc.dtos.EmailResponse;
 import io.github.bibekaryal86.shdsvc.helpers.CommonUtilities;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import org.json.JSONArray;
@@ -20,6 +29,8 @@ public class Email {
 
   public static final String ENV_MJ_PUB_KEY = "MJ_PUBLIC";
   public static final String ENV_MJ_PVT_KEY = "MJ_PRIVATE";
+  private static final String ENV_MG_API_KEY = "MG_KEY";
+  private static final String ENV_MG_DOMAIN = "MG_DOMAIN";
 
   private static final MailjetClient mailjetClient =
       new MailjetClient(
@@ -28,12 +39,16 @@ public class Email {
               .apiSecretKey(CommonUtilities.getSystemEnvProperty(ENV_MJ_PVT_KEY))
               .build());
 
+  private static final MailgunMessagesApi mailgunMessagesApi =
+      MailgunClient.config(CommonUtilities.getSystemEnvProperty(ENV_MG_API_KEY))
+          .createApi(MailgunMessagesApi.class);
+
   public EmailResponse sendEmail(final EmailRequest emailRequest) {
     final UUID requestId = UUID.randomUUID();
-    logger.debug("[{}] Request: [{}]", requestId, emailRequest);
+    logger.debug("[{}] Send Email Request: [{}]", requestId, emailRequest);
 
     try {
-      final JSONObject message = buildMessage(emailRequest, requestId);
+      final JSONObject message = buildMailjetMessage(emailRequest, requestId);
       final MailjetRequest request =
           new MailjetRequest(Emailv31.resource)
               .property(Emailv31.MESSAGES, new JSONArray().put(message));
@@ -52,12 +67,34 @@ public class Email {
           response.getTotal(),
           response.getRawResponseContent());
     } catch (Exception ex) {
-      logger.error("[{}] Send Email...", requestId, ex);
-      return new EmailResponse(requestId.toString(), 0, 0, 0, ex.getMessage());
+      logger.error("[{}] Send Email Error", requestId, ex);
+      return new EmailResponse(requestId.toString(), 500, 0, 0, ex.getMessage());
     }
   }
 
-  private JSONObject buildMessage(EmailRequest emailRequest, UUID requestId) {
+  public EmailResponse sendEmailMailgun(final EmailRequest emailRequest) {
+    final UUID requestId = UUID.randomUUID();
+    logger.debug("[{}] Send Email Mailgun Request: [{}]", requestId, emailRequest);
+    List<File> attachments = new ArrayList<>();
+    try {
+      final Message.MessageBuilder messageBuilder = buildMailgunMessage(emailRequest);
+      attachments = createAttachmentFilesNoEx(emailRequest.emailAttachments());
+      messageBuilder.attachment(attachments);
+
+      MessageResponse messageResponse =
+          mailgunMessagesApi.sendMessage(
+              CommonUtilities.getSystemEnvProperty(ENV_MG_DOMAIN), messageBuilder.build());
+      return new EmailResponse(messageResponse.getId(), 200, 0, 0, messageResponse.getMessage());
+
+    } catch (Exception ex) {
+      logger.error("[{}] Send Email Mailgun Error", requestId, ex);
+      return new EmailResponse(requestId.toString(), 500, 0, 0, ex.getMessage());
+    } finally {
+      deleteTemporaryFiles(attachments);
+    }
+  }
+
+  private JSONObject buildMailjetMessage(final EmailRequest emailRequest, final UUID requestId) {
     final JSONObject message =
         new JSONObject()
             .put(Emailv31.Message.CUSTOMID, requestId)
@@ -69,17 +106,17 @@ public class Email {
     }
 
     if (emailRequest.emailContent() != null) {
-      EmailRequest.EmailContent emailContent = emailRequest.emailContent();
+      final EmailRequest.EmailContent emailContent = emailRequest.emailContent();
 
       if (!CommonUtilities.isEmpty(emailContent.subject())) {
         message.put(Emailv31.Message.SUBJECT, emailContent.subject());
       }
 
-      if (!CommonUtilities.isEmpty(emailRequest.emailContent().text())) {
+      if (!CommonUtilities.isEmpty(emailContent.text())) {
         message.put(Emailv31.Message.TEXTPART, emailRequest.emailContent().text());
       }
 
-      if (!CommonUtilities.isEmpty(emailRequest.emailContent().html())) {
+      if (!CommonUtilities.isEmpty(emailContent.html())) {
         message.put(Emailv31.Message.HTMLPART, emailRequest.emailContent().html());
       }
     }
@@ -109,7 +146,7 @@ public class Email {
   private JSONArray emailAttachmentsJSONArray(
       final List<EmailRequest.EmailAttachment> emailAttachments) {
     final JSONArray jsonArray = new JSONArray();
-    for (EmailRequest.EmailAttachment emailAttachment : emailAttachments) {
+    for (final EmailRequest.EmailAttachment emailAttachment : emailAttachments) {
       jsonArray.put(
           new JSONObject()
               .put(
@@ -121,5 +158,68 @@ public class Email {
               .put("Base64Content", emailAttachment.fileContent()));
     }
     return jsonArray;
+  }
+
+  private Message.MessageBuilder buildMailgunMessage(final EmailRequest emailRequest) {
+    final Message.MessageBuilder messageBuilder =
+        Message.builder()
+            .from(emailRequest.emailFrom().emailAddress())
+            .to(
+                emailRequest.emailToList().stream()
+                    .map(EmailRequest.EmailContact::emailAddress)
+                    .toList());
+
+    if (!CommonUtilities.isEmpty(emailRequest.emailCcList())) {
+      messageBuilder.cc(
+          emailRequest.emailCcList().stream()
+              .map(EmailRequest.EmailContact::emailAddress)
+              .toList());
+    }
+
+    if (emailRequest.emailContent() != null) {
+      EmailRequest.EmailContent emailContent = emailRequest.emailContent();
+
+      if (!CommonUtilities.isEmpty(emailContent.subject())) {
+        messageBuilder.subject(emailContent.subject());
+      }
+
+      if (!CommonUtilities.isEmpty(emailContent.text())) {
+        messageBuilder.text(emailContent.text());
+      }
+
+      if (!CommonUtilities.isEmpty(emailContent.html())) {
+        messageBuilder.html(emailContent.html());
+      }
+    }
+    return messageBuilder;
+  }
+
+  private static List<File> createAttachmentFilesNoEx(
+      final List<EmailRequest.EmailAttachment> emailAttachments) {
+    try {
+      return createTemporaryFiles(emailAttachments);
+    } catch (Exception ex) {
+      logger.error("Create Attachments Exception", ex);
+      return Collections.emptyList();
+    }
+  }
+
+  private static List<File> createTemporaryFiles(
+      final List<EmailRequest.EmailAttachment> emailAttachments) throws IOException {
+    final List<File> temporaryFiles = new ArrayList<>();
+    for (final EmailRequest.EmailAttachment emailAttachment : emailAttachments) {
+      final File tempFile = File.createTempFile("attachment_", "_" + emailAttachment.fileName());
+      try (final FileWriter writer = new FileWriter(tempFile)) {
+        writer.write(emailAttachment.fileContent());
+      }
+      temporaryFiles.add(tempFile);
+    }
+    return temporaryFiles;
+  }
+
+  private static void deleteTemporaryFiles(final List<File> files) {
+    for (File file : files) {
+      file.delete();
+    }
   }
 }
