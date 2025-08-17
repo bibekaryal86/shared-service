@@ -64,25 +64,27 @@ spotless {
 // currently this is a manual process, figure out automating later
 // Generate the application JAR (default behavior of the 'java' plugin)
 // Set the base name and version for the project
-archivesBaseName = 'shdsvc'
+ext {
+    archivesBaseName = 'shdsvc'
+}
 version = '1.0.3'
 
 jar {
     archiveClassifier = ''
-    archiveFileName = "${archivesBaseName}-${version}.jar"
+    archiveFileName = "${project.ext.archivesBaseName}-${version}.jar"
 }
 
 // Generate the sources JAR
 tasks.register('sourcesJar', Jar) {
     archiveClassifier = 'sources'
-    archiveFileName = "${archivesBaseName}-${version}-sources.jar"
+    archiveFileName = "${project.ext.archivesBaseName}-${version}-sources.jar"
     from sourceSets.main.allSource
 }
 
 // Generate the Javadoc JAR
 tasks.register('javadocJar', Jar) {
     archiveClassifier = 'javadoc'
-    archiveFileName = "${archivesBaseName}-${version}-javadoc.jar"
+    archiveFileName = "${project.ext.archivesBaseName}-${version}-javadoc.jar"
     from javadoc.destinationDir
 }
 
@@ -146,7 +148,7 @@ publishing {
 tasks.register('copyAndRenamePom') {
     doLast {
         def pomFile = file("${projectDir}/build/publications/mavenPublication/pom-default.xml")
-        def destinationFile = file("${projectDir}/build/libs/${archivesBaseName}-${version}.pom")
+        def destinationFile = file("${projectDir}/build/libs/${project.ext.archivesBaseName}-${version}.pom")
         copy {
             from pomFile
             into destinationFile.parent
@@ -160,7 +162,7 @@ tasks.register('copyAndRenamePom') {
 // Task to generate checksums and signatures for the POM file
 tasks.register('signAndChecksumPom') {
     doLast {
-        def pomFile = file("${projectDir}/build/libs/${archivesBaseName}-${version}.pom")
+        def pomFile = file("${projectDir}/build/libs/${project.ext.archivesBaseName}-${version}.pom")
 
         // Generate .md5 and .sha1 checksums
         ant.checksum(file: pomFile, algorithm: 'MD5', fileext: '.md5')
@@ -174,8 +176,8 @@ tasks.register('signAndChecksumPom') {
 
 tasks.register('zipLibs', Zip) {
     from fileTree(dir: 'build/libs', include: '**/*')
-    into "io/github/bibekaryal86/${archivesBaseName}/${version}"
-    archiveFileName = "${archivesBaseName}-${version}.zip"
+    into "io/github/bibekaryal86/${project.ext.archivesBaseName}/${version}"
+    archiveFileName = "${project.ext.archivesBaseName}-${version}.zip"
     destinationDirectory = file("${projectDir}")
 }
 
