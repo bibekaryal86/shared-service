@@ -21,7 +21,6 @@ dependencies {
     api 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.19.0'
 
     implementation 'com.squareup.okhttp3:okhttp:4.12.0'
-    implementation 'com.mailjet:mailjet-client:6.0.0'
     implementation 'com.mailgun:mailgun-java:2.0.0'
 
     implementation 'org.slf4j:slf4j-api:2.0.17'
@@ -67,7 +66,7 @@ spotless {
 ext {
     archivesBaseName = 'shdsvc'
 }
-version = '1.0.3'
+version = '1.0.4'
 
 jar {
     archiveClassifier = ''
