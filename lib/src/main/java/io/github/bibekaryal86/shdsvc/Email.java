@@ -1,78 +1,76 @@
 package io.github.bibekaryal86.shdsvc;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.mailgun.api.v3.MailgunMessagesApi;
 import com.mailgun.client.MailgunClient;
 import com.mailgun.model.message.Message;
 import com.mailgun.model.message.MessageResponse;
-import com.mailjet.client.ClientOptions;
-import com.mailjet.client.MailjetClient;
-import com.mailjet.client.MailjetRequest;
-import com.mailjet.client.MailjetResponse;
-import com.mailjet.client.resource.Emailv31;
 import io.github.bibekaryal86.shdsvc.dtos.EmailRequest;
+import io.github.bibekaryal86.shdsvc.dtos.EmailRequestOut;
 import io.github.bibekaryal86.shdsvc.dtos.EmailResponse;
+import io.github.bibekaryal86.shdsvc.dtos.EmailResponseOut;
+import io.github.bibekaryal86.shdsvc.dtos.Enums;
+import io.github.bibekaryal86.shdsvc.dtos.HttpResponse;
 import io.github.bibekaryal86.shdsvc.helpers.CommonUtilities;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
-import org.json.JSONArray;
-import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class Email {
   private static final Logger logger = LoggerFactory.getLogger(Email.class);
 
-  public static final String ENV_MJ_PUB_KEY = "MJ_PUBLIC";
-  public static final String ENV_MJ_PVT_KEY = "MJ_PRIVATE";
-  private static final String ENV_MG_API_KEY = "MG_KEY";
-  private static final String ENV_MG_DOMAIN = "MG_DOMAIN";
+  public static final String ENV_MG_API_KEY = "MG_KEY";
+  public static final String ENV_MG_DOMAIN = "MG_DOMAIN";
+  public static final String ENV_EMAIL_API_URL = "EMAIL_API_URL";
+  public static final String ENV_EMAIL_API_USER = "EMAIL_API_USR";
+  public static final String ENV_EMAIL_API_PWD = "EMAIL_API_PWD";
 
-  private static final MailjetClient mailjetClient =
-      new MailjetClient(
-          ClientOptions.builder()
-              .apiKey(CommonUtilities.getSystemEnvProperty(ENV_MJ_PUB_KEY))
-              .apiSecretKey(CommonUtilities.getSystemEnvProperty(ENV_MJ_PVT_KEY))
-              .build());
-
-  private static final MailgunMessagesApi mailgunMessagesApi =
-      MailgunClient.config(CommonUtilities.getSystemEnvProperty(ENV_MG_API_KEY))
-          .createApi(MailgunMessagesApi.class);
+  private static MailgunMessagesApi mailgunMessagesApi = null;
 
   public EmailResponse sendEmail(final EmailRequest emailRequest) {
-    final UUID requestId = UUID.randomUUID();
-    logger.debug("[{}] Send Email Request: [{}]", requestId, emailRequest);
+    logger.debug("Send Email Request: [{}]", emailRequest);
 
     try {
-      final JSONObject message = buildMailjetMessage(emailRequest, requestId);
-      final MailjetRequest request =
-          new MailjetRequest(Emailv31.resource)
-              .property(Emailv31.MESSAGES, new JSONArray().put(message));
-      final MailjetResponse response = mailjetClient.post(request);
+      final String emailUrl = CommonUtilities.getSystemEnvProperty(ENV_EMAIL_API_URL);
+      final String emailUser = CommonUtilities.getSystemEnvProperty(ENV_EMAIL_API_USER);
+      final String emailPassword = CommonUtilities.getSystemEnvProperty(ENV_EMAIL_API_PWD);
+      final String emailAuthorization = CommonUtilities.getBasicAuth(emailUser, emailPassword);
 
+      final EmailRequestOut emailRequestOut = buildEmailMessage(emailRequest);
+      final HttpResponse<EmailResponseOut> httpResponse =
+          Connector.sendRequest(
+              emailUrl,
+              Enums.HttpMethod.POST,
+              new TypeReference<EmailResponseOut>() {},
+              emailAuthorization,
+              Collections.emptyMap(),
+              emailRequestOut);
+
+      final EmailResponseOut emailResponseOut = httpResponse.responseBody();
       logger.debug(
-          "[{}] Response: [{}]-[{}]",
-          requestId,
-          response.getStatus(),
-          response.getRawResponseContent());
-
-      return new EmailResponse(
-          requestId.toString(),
-          response.getStatus(),
-          response.getCount(),
-          response.getTotal(),
-          response.getRawResponseContent());
+          "[{}] Response: Code=[{}]", emailResponseOut.requestId(), httpResponse.statusCode());
+      return new EmailResponse(emailResponseOut.toString(), httpResponse.statusCode(), 1, 1, "");
     } catch (Exception ex) {
-      logger.error("[{}] Send Email Error", requestId, ex);
-      return new EmailResponse(requestId.toString(), 500, 0, 0, ex.getMessage());
+      logger.error("Send Email Error", ex);
+      return new EmailResponse("", 500, 0, 0, ex.getMessage());
     }
   }
 
   public EmailResponse sendEmailMailgun(final EmailRequest emailRequest) {
+    if (mailgunMessagesApi == null) {
+      mailgunMessagesApi =
+          MailgunClient.config(CommonUtilities.getSystemEnvProperty(ENV_MG_API_KEY))
+              .createApi(MailgunMessagesApi.class);
+    }
+
     final UUID requestId = UUID.randomUUID();
     logger.debug("[{}] Send Email Mailgun Request: [{}]", requestId, emailRequest);
     List<File> attachments = new ArrayList<>();
@@ -85,7 +83,6 @@ public class Email {
           mailgunMessagesApi.sendMessage(
               CommonUtilities.getSystemEnvProperty(ENV_MG_DOMAIN), messageBuilder.build());
       return new EmailResponse(messageResponse.getId(), 200, 0, 0, messageResponse.getMessage());
-
     } catch (Exception ex) {
       logger.error("[{}] Send Email Mailgun Error", requestId, ex);
       return new EmailResponse(requestId.toString(), 500, 0, 0, ex.getMessage());
@@ -94,70 +91,40 @@ public class Email {
     }
   }
 
-  private JSONObject buildMailjetMessage(final EmailRequest emailRequest, final UUID requestId) {
-    final JSONObject message =
-        new JSONObject()
-            .put(Emailv31.Message.CUSTOMID, requestId)
-            .put(Emailv31.Message.FROM, emailContactJSONObject(emailRequest.emailFrom()))
-            .put(Emailv31.Message.TO, emailContactsJSONArray(emailRequest.emailToList()));
+  private EmailRequestOut buildEmailMessage(final EmailRequest emailRequest) {
+    final String subject = emailRequest.emailContent().subject();
+    final String htmlBody = emailRequest.emailContent().html();
+    final String textBody = emailRequest.emailContent().text();
 
-    if (!CommonUtilities.isEmpty(emailRequest.emailCcList())) {
-      message.put(Emailv31.Message.CC, emailContactsJSONArray(emailRequest.emailCcList()));
-    }
+    final List<String> emailToList =
+        emailRequest.emailToList().stream().map(EmailRequest.EmailContact::emailAddress).toList();
+    final List<String> emailCcList =
+        emailRequest.emailCcList() == null
+            ? Collections.emptyList()
+            : emailRequest.emailCcList().stream()
+                .map(EmailRequest.EmailContact::emailAddress)
+                .toList();
+    final List<String> emailBccList =
+        Collections.emptyList(); // TODO not available in shared-service
+    final EmailRequestOut.EmailRequestRecipients emailRequestRecipients =
+        new EmailRequestOut.EmailRequestRecipients(emailToList, emailCcList, emailBccList);
 
-    if (emailRequest.emailContent() != null) {
-      final EmailRequest.EmailContent emailContent = emailRequest.emailContent();
-
-      if (!CommonUtilities.isEmpty(emailContent.subject())) {
-        message.put(Emailv31.Message.SUBJECT, emailContent.subject());
-      }
-
-      if (!CommonUtilities.isEmpty(emailContent.text())) {
-        message.put(Emailv31.Message.TEXTPART, emailRequest.emailContent().text());
-      }
-
-      if (!CommonUtilities.isEmpty(emailContent.html())) {
-        message.put(Emailv31.Message.HTMLPART, emailRequest.emailContent().html());
-      }
-    }
-
+    final List<EmailRequestOut.EmailRequestAttachment> emailRequestAttachments = new ArrayList<>();
     if (!CommonUtilities.isEmpty(emailRequest.emailAttachments())) {
-      message.put(
-          Emailv31.Message.ATTACHMENTS, emailAttachmentsJSONArray(emailRequest.emailAttachments()));
+      for (EmailRequest.EmailAttachment emailAttachment : emailRequest.emailAttachments()) {
+        final String base64Content =
+            Base64.getEncoder()
+                .encodeToString(emailAttachment.fileContent().getBytes(StandardCharsets.UTF_8));
+        final String fileName = emailAttachment.fileName();
+        final String fileContentType = emailAttachment.contentType();
+        final EmailRequestOut.EmailRequestAttachment attachment =
+            new EmailRequestOut.EmailRequestAttachment(fileName, base64Content, fileContentType);
+        emailRequestAttachments.add(attachment);
+      }
     }
 
-    return message;
-  }
-
-  private JSONArray emailContactsJSONArray(final List<EmailRequest.EmailContact> emailContacts) {
-    final JSONArray jsonArray = new JSONArray();
-    for (EmailRequest.EmailContact emailContact : emailContacts) {
-      jsonArray.put(emailContactJSONObject(emailContact));
-    }
-    return jsonArray;
-  }
-
-  private JSONObject emailContactJSONObject(final EmailRequest.EmailContact emailContact) {
-    return new JSONObject()
-        .put("Email", emailContact.emailAddress())
-        .put("Name", emailContact.fullName());
-  }
-
-  private JSONArray emailAttachmentsJSONArray(
-      final List<EmailRequest.EmailAttachment> emailAttachments) {
-    final JSONArray jsonArray = new JSONArray();
-    for (final EmailRequest.EmailAttachment emailAttachment : emailAttachments) {
-      jsonArray.put(
-          new JSONObject()
-              .put(
-                  "ContentType",
-                  CommonUtilities.isEmpty(emailAttachment.contentType())
-                      ? "text/plain"
-                      : emailAttachment.contentType())
-              .put("Filename", emailAttachment.fileName())
-              .put("Base64Content", emailAttachment.fileContent()));
-    }
-    return jsonArray;
+    return new EmailRequestOut(
+        subject, htmlBody, textBody, emailRequestRecipients, emailRequestAttachments);
   }
 
   private Message.MessageBuilder buildMailgunMessage(final EmailRequest emailRequest) {
