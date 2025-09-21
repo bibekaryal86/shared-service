@@ -21,3 +21,10 @@ publish new versions manually.
 * `./gradlew buildAndPublish` task command builds and creates the zip file to upload to SonaType to publish
 * The task builds, creates and packages javadoc, packages sources and application jar, signs, applies gpg key
 * gpg key details are added in `gradle.properties`
+* In sonatype website
+  * Click the button that says `Publish Component`
+    * Deployment Name: `io.github.bibekaryal86`
+    * Upload Your File: Select the `.zip` file from `buildAndPublish` output
+    * Click `Publish Component` on the modal
+    * That takes it to the Validation stage, which takes less than a minute to be validated
+    * Once validated, click on the `Publish` button to actually publish it
