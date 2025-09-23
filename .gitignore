@@ -28,7 +28,6 @@ build
 
 # build/publish related
 *.gpg
-*.properties
 *.zip
 *.md5
 *.sha1
