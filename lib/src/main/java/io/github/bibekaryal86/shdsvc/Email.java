@@ -1,5 +1,11 @@
 package io.github.bibekaryal86.shdsvc;
 
+import static io.github.bibekaryal86.shdsvc.helpers.ConstantUtilities.ENV_EMAIL_API_PWD;
+import static io.github.bibekaryal86.shdsvc.helpers.ConstantUtilities.ENV_EMAIL_API_URL;
+import static io.github.bibekaryal86.shdsvc.helpers.ConstantUtilities.ENV_EMAIL_API_USER;
+import static io.github.bibekaryal86.shdsvc.helpers.ConstantUtilities.ENV_MG_API_KEY;
+import static io.github.bibekaryal86.shdsvc.helpers.ConstantUtilities.ENV_MG_DOMAIN;
+
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.mailgun.api.v3.MailgunMessagesApi;
 import com.mailgun.client.MailgunClient;
@@ -26,12 +32,6 @@ import org.slf4j.LoggerFactory;
 
 public class Email {
   private static final Logger logger = LoggerFactory.getLogger(Email.class);
-
-  public static final String ENV_MG_API_KEY = "MG_KEY";
-  public static final String ENV_MG_DOMAIN = "MG_DOMAIN";
-  public static final String ENV_EMAIL_API_URL = "EMAIL_API_URL";
-  public static final String ENV_EMAIL_API_USER = "EMAIL_API_USR";
-  public static final String ENV_EMAIL_API_PWD = "EMAIL_API_PWD";
 
   private static MailgunMessagesApi mailgunMessagesApi = null;
 
