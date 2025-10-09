@@ -31,12 +31,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class Email {
-  private static final Logger logger = LoggerFactory.getLogger(Email.class);
+  private static final Logger log = LoggerFactory.getLogger(Email.class);
 
   private static MailgunMessagesApi mailgunMessagesApi = null;
 
   public EmailResponse sendEmail(final EmailRequest emailRequest) {
-    logger.debug("Send Email Request: [{}]", emailRequest);
+    final UUID requestId = UUID.randomUUID();
+    log.debug("[{}] Send Email Request: [{}]", requestId, emailRequest);
 
     try {
       final String emailUrl = CommonUtilities.getSystemEnvProperty(ENV_EMAIL_API_URL);
@@ -55,28 +56,36 @@ public class Email {
               emailRequestOut);
 
       final EmailResponseOut emailResponseOut = httpResponse.responseBody();
-      logger.debug(
-          "[{}] Response: Code=[{}]", emailResponseOut.requestId(), httpResponse.statusCode());
+      log.debug(
+          "[{}] Send Email Response: Id=[{}] Code=[{}]",
+          requestId,
+          emailResponseOut.requestId(),
+          httpResponse.statusCode());
       return new EmailResponse(emailResponseOut.toString(), httpResponse.statusCode(), 1, 1, "");
     } catch (Exception ex) {
-      logger.error("Send Email Error", ex);
-      return new EmailResponse("", 500, 0, 0, ex.getMessage());
+      log.error(
+          "[{}] Send Email Exception=[{}] ExMessage=[{}]",
+          requestId,
+          ex.getClass(),
+          ex.getMessage());
+      throw new RuntimeException(ex);
     }
   }
 
   public EmailResponse sendEmailMailgun(final EmailRequest emailRequest) {
+    final UUID requestId = UUID.randomUUID();
+
     if (mailgunMessagesApi == null) {
       mailgunMessagesApi =
           MailgunClient.config(CommonUtilities.getSystemEnvProperty(ENV_MG_API_KEY))
               .createApi(MailgunMessagesApi.class);
     }
 
-    final UUID requestId = UUID.randomUUID();
-    logger.debug("[{}] Send Email Mailgun Request: [{}]", requestId, emailRequest);
+    log.debug("[{}] Send Email Mailgun Request: [{}]", requestId, emailRequest);
     List<File> attachments = new ArrayList<>();
     try {
       final Message.MessageBuilder messageBuilder = buildMailgunMessage(emailRequest);
-      attachments = createAttachmentFilesNoEx(emailRequest.emailAttachments());
+      attachments = createAttachmentFilesNoEx(requestId, emailRequest.emailAttachments());
       messageBuilder.attachment(attachments);
 
       MessageResponse messageResponse =
@@ -84,8 +93,12 @@ public class Email {
               CommonUtilities.getSystemEnvProperty(ENV_MG_DOMAIN), messageBuilder.build());
       return new EmailResponse(messageResponse.getId(), 200, 0, 0, messageResponse.getMessage());
     } catch (Exception ex) {
-      logger.error("[{}] Send Email Mailgun Error", requestId, ex);
-      return new EmailResponse(requestId.toString(), 500, 0, 0, ex.getMessage());
+      log.error(
+          "[{}] Send Email Mailgun Exception=[{}] ExMessage=[{}]",
+          requestId,
+          ex.getClass(),
+          ex.getMessage());
+      throw new RuntimeException(ex);
     } finally {
       deleteTemporaryFiles(attachments);
     }
@@ -162,11 +175,15 @@ public class Email {
   }
 
   private static List<File> createAttachmentFilesNoEx(
-      final List<EmailRequest.EmailAttachment> emailAttachments) {
+      final UUID requestId, final List<EmailRequest.EmailAttachment> emailAttachments) {
     try {
       return createTemporaryFiles(emailAttachments);
     } catch (Exception ex) {
-      logger.error("Create Attachments Exception", ex);
+      log.error(
+          "[{}] Create Attachments Exception=[{}] ExMessage=[{}]",
+          requestId,
+          ex.getClass(),
+          ex.getMessage());
       return Collections.emptyList();
     }
   }

@@ -9,11 +9,8 @@ import java.util.Arrays;
 import java.util.Base64;
 import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class Secrets {
-  private static final Logger logger = LoggerFactory.getLogger(Secrets.class);
 
   public static String decryptSecret(final String encryptedData) {
     final String secretKey = CommonUtilities.getSystemEnvProperty(ENV_SECRET_KEY);

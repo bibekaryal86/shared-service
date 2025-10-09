@@ -5,7 +5,6 @@ import io.github.bibekaryal86.shdsvc.dtos.Enums;
 import io.github.bibekaryal86.shdsvc.dtos.HttpResponse;
 import io.github.bibekaryal86.shdsvc.helpers.CommonUtilities;
 import io.github.bibekaryal86.shdsvc.helpers.OkHttpLogging;
-import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
@@ -56,8 +55,13 @@ public class Connector {
           CommonUtilities.objectMapperProvider().readValue(response.body().string(), valueTypeRef);
       return new HttpResponse<>(responseCode, responseBody, xResponseHeaders);
     } catch (Exception ex) {
-      logger.error("Send Request: [{}]|[{}]", method, url, ex);
-      return new HttpResponse<>(503, null, Collections.emptyMap());
+      logger.error(
+          "Send Request Exception=[{}] ExMessage=[{}] | Method=[{}] URL=[{}]",
+          ex.getClass(),
+          ex.getMessage(),
+          method,
+          url);
+      throw new RuntimeException(ex);
     }
   }
 

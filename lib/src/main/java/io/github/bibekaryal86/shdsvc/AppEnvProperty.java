@@ -14,7 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class AppEnvProperty {
-  private static final Logger logger = LoggerFactory.getLogger(AppEnvProperty.class);
+  private static final Logger log = LoggerFactory.getLogger(AppEnvProperty.class);
 
   private static List<EnvDetailsResponse.EnvDetails> ENV_DETAILS_LIST = new ArrayList<>();
   private static Timer timer;
@@ -31,7 +31,7 @@ public class AppEnvProperty {
 
   // Refresh properties periodically
   public static void refreshEnvDetailsList(final String appName) {
-    logger.info("Starting Routes Timer...");
+    log.debug("Starting Routes Timer...");
     timer = new Timer();
     timer.schedule(
         new TimerTask() {
@@ -47,7 +47,7 @@ public class AppEnvProperty {
         .addShutdownHook(
             new Thread(
                 () -> {
-                  logger.debug("Stopping Routes Timer...");
+                  log.debug("Stopping Routes Timer...");
                   if (timer != null) {
                     timer.cancel();
                     timer.purge();
@@ -73,7 +73,7 @@ public class AppEnvProperty {
   }
 
   private static void setEnvDetailsList(final String appName) {
-    logger.debug("Retrieving Env Details...");
+    log.debug("Retrieving Env Details for AppName: [{}]", appName);
     final String url = API_URL_BASE + "/api/v1/" + appName;
     HttpResponse<EnvDetailsResponse> response =
         Connector.sendRequest(
@@ -89,14 +89,17 @@ public class AppEnvProperty {
       if (CommonUtilities.isEmpty(envDetailsResponse.getErrMsg())) {
         ENV_DETAILS_LIST = envDetailsResponse.getEnvDetails();
       } else {
-        logger.error(
-            "Failed to Fetch Env Details, Error Response: [{}]", envDetailsResponse.getErrMsg());
+        log.error(
+            "Failed to Fetch Env Details for AppName: [{}], Error Response: [{}]",
+            appName,
+            envDetailsResponse.getErrMsg());
       }
     } else {
-      logger.error(
-          "Failed to Fetch Env Details, Response: [{}] | [{}]",
+      log.error(
+          "Failed to Fetch Env Details, for AppName: [{}] Response: [{}] | [{}]",
+          appName,
           response.statusCode(),
-          response.responseBody() == null);
+          response.responseBody() == null ? null : response.responseBody());
     }
   }
 }

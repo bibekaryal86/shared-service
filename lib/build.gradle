@@ -66,7 +66,7 @@ spotless {
 ext {
     archivesBaseName = 'shdsvc'
 }
-version = '1.0.4'
+version = '1.0.6'
 
 jar {
     archiveClassifier = ''
