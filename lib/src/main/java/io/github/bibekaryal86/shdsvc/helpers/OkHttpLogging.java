@@ -11,7 +11,7 @@ import org.slf4j.LoggerFactory;
 
 public class OkHttpLogging implements Interceptor {
 
-  private static final Logger logger = LoggerFactory.getLogger(OkHttpLogging.class);
+  private static final Logger log = LoggerFactory.getLogger(OkHttpLogging.class);
 
   @NotNull
   @Override
@@ -20,12 +20,12 @@ public class OkHttpLogging implements Interceptor {
     UUID requestId = UUID.randomUUID();
 
     Request request = chain.request();
-    logger.debug("[{}] Request: [{}] [{}]", requestId, request.method(), request.url());
+    log.debug("[{}] Request: [{}] [{}]", requestId, request.method(), request.url());
 
     Response response = chain.proceed(request);
     long endTime = System.nanoTime();
 
-    logger.debug(
+    log.debug(
         "[{}] Response: [{}] in [{}s]",
         requestId,
         response.code(),
