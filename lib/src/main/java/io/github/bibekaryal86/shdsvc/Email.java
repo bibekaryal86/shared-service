@@ -35,6 +35,14 @@ public class Email {
 
   private static MailgunMessagesApi mailgunMessagesApi = null;
 
+  public EmailResponse sendEmailNoEx(final EmailRequest emailRequest) {
+    try {
+      return sendEmail(emailRequest);
+    } catch (RuntimeException ex) {
+      return new EmailResponse("", 500, 0, 0, ex.getMessage());
+    }
+  }
+
   public EmailResponse sendEmail(final EmailRequest emailRequest) {
     final UUID requestId = UUID.randomUUID();
     log.debug("[{}] Send Email Request: [{}]", requestId, emailRequest);
@@ -69,6 +77,14 @@ public class Email {
           ex.getClass(),
           ex.getMessage());
       throw new RuntimeException(ex);
+    }
+  }
+
+  public EmailResponse sendEmailMailgunNoEx(final EmailRequest emailRequest) {
+    try {
+      return sendEmailMailgun(emailRequest);
+    } catch (RuntimeException ex) {
+      return new EmailResponse("", 500, 0, 0, ex.getMessage());
     }
   }
 
