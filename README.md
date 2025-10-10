@@ -20,8 +20,11 @@ publish new versions manually.
 
 * `./gradlew buildAndPublish` task command builds and creates the zip file to upload to SonaType to publish
 * The task builds, creates and packages javadoc, packages sources and application jar, signs, applies gpg key
-* gpg key details are added in `gradle.properties`
-* In sonatype website
+  * gpg key details are added in `gradle.properties`
+  * maven central username and password are added in `gradle.properties`
+* With version 1.0.8, there is no need to manually upload the zip file to SonaType to publish
+  * this is done automatically by the `buildAndPublish` command
+* [LEGACY] In sonatype website
   * Click the button that says `Publish Component`
     * Deployment Name: `io.github.bibekaryal86`
     * Upload Your File: Select the `.zip` file from `buildAndPublish` output

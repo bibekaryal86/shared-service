@@ -66,7 +66,7 @@ spotless {
 ext {
     archivesBaseName = 'shdsvc'
 }
-version = '1.0.7'
+version = '1.0.8'
 
 jar {
     archiveClassifier = ''
@@ -178,6 +178,8 @@ tasks.register('zipLibs', Zip) {
     into "io/github/bibekaryal86/${project.ext.archivesBaseName}/${version}"
     archiveFileName = "${project.ext.archivesBaseName}-${version}.zip"
     destinationDirectory = file("${projectDir}")
+
+    finalizedBy publishZipToMavenCentral
 }
 
 // FINAL TASK TO GENERATE PUBLISH ARTIFACTS
@@ -185,3 +187,63 @@ tasks.register('buildAndPublish') {
     dependsOn clean, jar, sourcesJar, javadocJar, publishToMavenLocal, signArchives
     finalizedBy copyAndRenamePom
 }
+
+tasks.register('publishZipToMavenCentral') {
+    doLast {
+        // Step 1: Validate ZIP file existence
+        def zipFile = file("${projectDir}/${project.ext.archivesBaseName}-${version}.zip")
+        if (!zipFile.exists()) {
+            throw new GradleException("ZIP file not found at expected location: ${zipFile}")
+        }
+
+        // Step 2: Retrieve credentials and encode
+        def username = project.findProperty('mavenCentral.username')
+        def password = project.findProperty('mavenCentral.password')
+
+        if (!username || !password) {
+            throw new GradleException("Missing Maven Central credentials. Ensure 'mavenCentral.username' and 'mavenCentral.password' are set in gradle.properties.")
+        }
+
+        def authString = "${username}:${password}"
+        def encodedAuth = Base64.encoder.encodeToString(authString.getBytes("UTF-8"))
+
+        if (!encodedAuth) {
+            throw new GradleException("Failed to encode credentials for Maven Central authentication.")
+        }
+
+        // Step 3: Prepare and send the POST request
+        def boundary = "----GradleBoundary${System.currentTimeMillis()}"
+        def lineEnd = "\r\n"
+
+        def url = new URL("https://central.sonatype.com/api/v1/publisher/upload?name=io.github.bibekaryal86&publishingType=AUTOMATIC")
+        def connection = (HttpURLConnection) url.openConnection()
+        connection.setRequestMethod("POST")
+        connection.setDoOutput(true)
+        connection.setRequestProperty("Authorization", "Basic ${encodedAuth}")
+        connection.setRequestProperty("Content-Type", "multipart/form-data; boundary=${boundary}")
+        connection.setRequestProperty("Accept", "text/plain")
+
+        def outputStream = connection.getOutputStream()
+        def writer = new OutputStreamWriter(outputStream, "UTF-8")
+
+        writer.write("--${boundary}${lineEnd}")
+        writer.write("Content-Disposition: form-data; name=\"bundle\"; filename=\"${zipFile.name}\"${lineEnd}")
+        writer.write("Content-Type: application/zip${lineEnd}${lineEnd}")
+        writer.flush()
+
+        outputStream.write(zipFile.bytes)
+        outputStream.flush()
+
+        writer.write("${lineEnd}--${boundary}--${lineEnd}")
+        writer.flush()
+        writer.close()
+
+        def responseCode = connection.getResponseCode()
+        def responseText = connection.getInputStream().getText()
+
+        println "Upload complete"
+        println "Response Code: ${responseCode}"
+        println "Response Message: ${responseText}"
+    }
+}
+
