@@ -5,7 +5,6 @@ import java.util.UUID;
 import okhttp3.Interceptor;
 import okhttp3.Request;
 import okhttp3.Response;
-import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -13,7 +12,6 @@ public class OkHttpLogging implements Interceptor {
 
   private static final Logger log = LoggerFactory.getLogger(OkHttpLogging.class);
 
-  @NotNull
   @Override
   public Response intercept(final Chain chain) throws IOException {
     long startTime = System.nanoTime();

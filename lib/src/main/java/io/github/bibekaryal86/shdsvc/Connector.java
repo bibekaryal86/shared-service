@@ -5,6 +5,7 @@ import io.github.bibekaryal86.shdsvc.dtos.Enums;
 import io.github.bibekaryal86.shdsvc.dtos.HttpResponse;
 import io.github.bibekaryal86.shdsvc.helpers.CommonUtilities;
 import io.github.bibekaryal86.shdsvc.helpers.OkHttpLogging;
+import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
@@ -30,6 +31,20 @@ public class Connector {
           .addInterceptor(new OkHttpLogging())
           .build();
 
+  public static <T> HttpResponse<T> sendRequestNoEx(
+      final String url,
+      final Enums.HttpMethod method,
+      final TypeReference<T> valueTypeRef,
+      final String authorization,
+      final Map<String, String> headers,
+      final Object requestBody) {
+    try {
+      return sendRequest(url, method, valueTypeRef, authorization, headers, requestBody);
+    } catch (RuntimeException ignored) {
+      return new HttpResponse<>(503, null, Collections.emptyMap());
+    }
+  }
+
   public static <T> HttpResponse<T> sendRequest(
       final String url,
       final Enums.HttpMethod method,
@@ -47,7 +62,7 @@ public class Connector {
               .filter(entry -> entry.getKey().toLowerCase().startsWith("x-"))
               .collect(Collectors.toMap(Map.Entry::getKey, entry -> entry.getValue().getFirst()));
 
-      if (response.body() == null || response.body().contentLength() == 0) {
+      if (response.body().contentLength() == 0) {
         return new HttpResponse<>(responseCode, null, xResponseHeaders);
       }
 
