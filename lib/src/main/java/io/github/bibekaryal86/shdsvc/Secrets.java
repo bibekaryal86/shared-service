@@ -58,7 +58,8 @@ public class Secrets {
     return base64 + "." + signature;
   }
 
-  public static <T> T decodeAndVerify(final String signedValue, final Class<T> clazz) throws Exception {
+  public static <T> T decodeAndVerify(final String signedValue, final Class<T> clazz)
+      throws Exception {
     String[] parts = signedValue.split("\\.");
     if (parts.length != 2 || !verify(parts[0], parts[1])) {
       throw new SecurityException("Invalid signature");

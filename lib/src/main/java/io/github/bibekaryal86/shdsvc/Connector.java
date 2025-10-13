@@ -22,7 +22,7 @@ import org.slf4j.LoggerFactory;
 public class Connector {
   private static final Logger logger = LoggerFactory.getLogger(Connector.class);
 
-  private static final OkHttpClient okHttpClient =
+  private static OkHttpClient okHttpClient =
       new OkHttpClient.Builder()
           .connectTimeout(5, TimeUnit.SECONDS)
           .readTimeout(15, TimeUnit.SECONDS)
@@ -30,6 +30,11 @@ public class Connector {
           .connectionPool(new ConnectionPool(10, 5, TimeUnit.MINUTES))
           .addInterceptor(new OkHttpLogging())
           .build();
+
+  @Deprecated
+  public static void overrideClient(final OkHttpClient customClient) {
+    okHttpClient = customClient;
+  }
 
   public static <T> HttpResponse<T> sendRequestNoEx(
       final String url,

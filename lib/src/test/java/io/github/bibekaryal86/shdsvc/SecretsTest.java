@@ -57,9 +57,11 @@ public class SecretsTest {
 
     final String tampered = tamperedBase64 + "." + signed.split("\\.")[1];
 
-    assertThrows(SecurityException.class, () -> {
-      Secrets.decodeAndVerify(tampered, SampleObject.class);
-    });
+    assertThrows(
+        SecurityException.class,
+        () -> {
+          Secrets.decodeAndVerify(tampered, SampleObject.class);
+        });
   }
 
   @Test
