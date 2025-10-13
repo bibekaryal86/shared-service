@@ -1,92 +1,168 @@
 package io.github.bibekaryal86.shdsvc;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import io.github.bibekaryal86.shdsvc.dtos.Enums;
 import io.github.bibekaryal86.shdsvc.dtos.HttpResponse;
-import java.io.IOException;
+import io.github.bibekaryal86.shdsvc.helpers.CommonUtilities;
+import java.util.List;
 import java.util.Map;
-import okhttp3.mockwebserver.MockResponse;
-import okhttp3.mockwebserver.MockWebServer;
-import org.junit.jupiter.api.AfterEach;
+import okhttp3.*;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-import org.mockito.MockitoAnnotations;
+import org.mockito.MockedStatic;
 
-@Disabled
 public class ConnectorTest {
 
-  private MockWebServer mockWebServer;
-  private String mockUrl;
+  private OkHttpClient mockClient;
+  private Call mockCall;
+  private Response mockResponse;
 
   @BeforeEach
-  void setup() throws Exception {
-    try (var ignored = MockitoAnnotations.openMocks(this)) {
-      mockWebServer = new MockWebServer();
-      mockWebServer.start();
-      mockUrl = mockWebServer.url("/").toString();
+  public void setup() {
+    mockClient = mock(OkHttpClient.class);
+    mockCall = mock(Call.class);
+    mockResponse = mock(Response.class);
+    Connector.overrideClient(mockClient);
+  }
+
+  @Test
+  public void testSendRequest_successfulJsonResponse() throws Exception {
+    String url = "https://example.com/api";
+    String json = "{\"message\":\"ok\"}";
+    Map<String, List<String>> headers = Map.of("x-trace-id", List.of("abc123"));
+
+    // Mock response body
+    ResponseBody body = ResponseBody.create(json, MediaType.get("application/json"));
+    Headers okHeaders = Headers.of("x-trace-id", "abc123");
+
+    when(mockResponse.code()).thenReturn(200);
+    when(mockResponse.body()).thenReturn(body);
+    when(mockResponse.headers()).thenReturn(okHeaders);
+    when(mockResponse.request()).thenReturn(new Request.Builder().url(url).build());
+
+    when(mockCall.execute()).thenReturn(mockResponse);
+    when(mockClient.newCall(any())).thenReturn(mockCall);
+
+    try (MockedStatic<CommonUtilities> utilities = mockStatic(CommonUtilities.class)) {
+      utilities.when(CommonUtilities::objectMapperProvider).thenCallRealMethod();
+      utilities.when(() -> CommonUtilities.writeValueAsStringNoEx(any())).thenReturn("{}");
+      utilities.when(() -> CommonUtilities.isEmpty(anyString())).thenReturn(true);
+      utilities.when(() -> CommonUtilities.isEmpty(anyMap())).thenReturn(false);
+
+      TypeReference<Map<String, String>> typeRef = new TypeReference<>() {};
+      HttpResponse<Map<String, String>> response =
+          Connector.sendRequest(
+              url,
+              Enums.HttpMethod.POST,
+              typeRef,
+              "Bearer token",
+              Map.of("X-Custom", "yes"),
+              Map.of("key", "value"));
+
+      assertEquals(200, response.statusCode());
+      assertEquals("ok", response.responseBody().get("message"));
+      assertEquals("abc123", response.xResponseHeaders().get("x-trace-id"));
     }
   }
 
-  @AfterEach
-  void tearDown() throws IOException {
-    mockWebServer.shutdown();
+  @Test
+  public void testSendRequestNoEx_handlesExceptionGracefully() throws Exception {
+    String url = "https://example.com/fail";
+
+    when(mockCall.execute()).thenThrow(new RuntimeException("Simulated failure"));
+    when(mockClient.newCall(any())).thenReturn(mockCall);
+
+    try (MockedStatic<CommonUtilities> utilities = mockStatic(CommonUtilities.class)) {
+      utilities.when(() -> CommonUtilities.writeValueAsStringNoEx(any())).thenReturn("{}");
+      utilities.when(() -> CommonUtilities.isEmpty(anyString())).thenReturn(false);
+      utilities.when(() -> CommonUtilities.isEmpty(anyMap())).thenReturn(false);
+
+      HttpResponse<Object> response =
+          Connector.sendRequestNoEx(
+              url, Enums.HttpMethod.GET, new TypeReference<>() {}, null, Map.of(), null);
+
+      assertEquals(503, response.statusCode());
+      assertNull(response.responseBody());
+      assertTrue(response.xResponseHeaders().isEmpty());
+    }
   }
 
   @Test
-  void testSendRequestSuccess() throws IOException {
-    // Arrange
-    MockResponse response = new MockResponse().setResponseCode(200).setBody("{\"key\":\"value\"}");
-    mockWebServer.enqueue(response);
+  public void testSendRequest_emptyResponseBody() throws Exception {
+    String url = "https://example.com/empty";
+    ResponseBody emptyBody = ResponseBody.create("", MediaType.get("application/json"));
+    Headers headers = Headers.of("x-trace-id", "abc123");
 
-    // Act
-    HttpResponse<Map<String, String>> result =
-        Connector.sendRequest(
-            mockUrl, Enums.HttpMethod.GET, new TypeReference<>() {}, null, null, null);
+    when(mockResponse.code()).thenReturn(204);
+    when(mockResponse.body()).thenReturn(emptyBody);
+    when(mockResponse.headers()).thenReturn(headers);
+    when(mockResponse.request()).thenReturn(new Request.Builder().url(url).build());
+    when(mockCall.execute()).thenReturn(mockResponse);
+    when(mockClient.newCall(any())).thenReturn(mockCall);
 
-    // Assert
-    assertEquals(200, result.statusCode());
-    assertNotNull(result.responseBody());
+    try (MockedStatic<CommonUtilities> utilities = mockStatic(CommonUtilities.class)) {
+      utilities.when(CommonUtilities::objectMapperProvider).thenCallRealMethod();
+      utilities.when(() -> CommonUtilities.writeValueAsStringNoEx(any())).thenReturn("{}");
+      utilities.when(() -> CommonUtilities.isEmpty(anyString())).thenReturn(false);
+      utilities.when(() -> CommonUtilities.isEmpty(anyMap())).thenReturn(false);
+
+      HttpResponse<Object> response =
+          Connector.sendRequest(
+              url, Enums.HttpMethod.GET, new TypeReference<>() {}, "test-auth", Map.of(), null);
+
+      assertEquals(204, response.statusCode());
+      assertNull(response.responseBody());
+      assertEquals("abc123", response.xResponseHeaders().get("x-trace-id"));
+    }
   }
 
   @Test
-  void testSendRequestFailure() {
-    // Arrange
-    MockResponse response =
-        new MockResponse().setResponseCode(500).setBody("{\"error\":\"message\"}");
-    mockWebServer.enqueue(response);
+  public void testSendRequest_noXHeaders() throws Exception {
+    String url = "https://example.com/noheaders";
+    ResponseBody body =
+        ResponseBody.create("{\"status\":\"ok\"}", MediaType.get("application/json"));
+    Headers headers = Headers.of("Content-Type", "application/json");
 
-    // Act and Assert
-    HttpResponse<Map<String, String>> result =
-        Connector.sendRequest(
-            mockUrl, Enums.HttpMethod.GET, new TypeReference<>() {}, null, null, null);
-    assertEquals(500, result.statusCode());
-    assertNotNull(result.responseBody());
+    when(mockResponse.code()).thenReturn(200);
+    when(mockResponse.body()).thenReturn(body);
+    when(mockResponse.headers()).thenReturn(headers);
+    when(mockResponse.request()).thenReturn(new Request.Builder().url(url).build());
+    when(mockCall.execute()).thenReturn(mockResponse);
+    when(mockClient.newCall(any())).thenReturn(mockCall);
+
+    try (MockedStatic<CommonUtilities> utilities = mockStatic(CommonUtilities.class)) {
+      utilities.when(CommonUtilities::objectMapperProvider).thenCallRealMethod();
+      utilities.when(() -> CommonUtilities.writeValueAsStringNoEx(any())).thenReturn("{}");
+      utilities.when(() -> CommonUtilities.isEmpty(anyString())).thenReturn(false);
+      utilities.when(() -> CommonUtilities.isEmpty(anyMap())).thenReturn(false);
+
+      HttpResponse<Map<String, String>> response =
+          Connector.sendRequest(
+              url, Enums.HttpMethod.GET, new TypeReference<>() {}, "test-auth", Map.of(), null);
+
+      assertEquals(200, response.statusCode());
+      assertTrue(response.xResponseHeaders().isEmpty());
+    }
   }
 
   @Test
-  void testSendRequestException() {
-    // Arrange
-    mockWebServer.enqueue(new MockResponse().setResponseCode(503));
+  public void testSendRequest_nullRequestBodyWithPost_shouldThrow() throws Exception {
+    String url = "https://example.com/post";
 
-    // Act and Assert
-    HttpResponse<Map<String, String>> result =
-        Connector.sendRequest(
-            mockUrl, Enums.HttpMethod.GET, new TypeReference<>() {}, null, null, null);
-    assertEquals(503, result.statusCode());
-  }
+    try (MockedStatic<CommonUtilities> utilities = mockStatic(CommonUtilities.class)) {
+      utilities.when(() -> CommonUtilities.writeValueAsStringNoEx(null)).thenReturn(null);
+      utilities.when(() -> CommonUtilities.isEmpty(anyString())).thenReturn(true);
+      utilities.when(() -> CommonUtilities.isEmpty(anyMap())).thenReturn(true);
 
-  @Test
-  void testSendRequestInvalidUrl() {
-    // Act and Assert
-    assertThrows(
-        Exception.class,
-        () ->
+      assertThrows(
+          IllegalArgumentException.class,
+          () -> {
             Connector.sendRequest(
-                "invalid-url", Enums.HttpMethod.GET, new TypeReference<>() {}, null, null, null));
+                url, Enums.HttpMethod.POST, new TypeReference<>() {}, null, Map.of(), null);
+          });
+    }
   }
 }

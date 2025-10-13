@@ -124,6 +124,8 @@ public class Email {
     final String subject = emailRequest.emailContent().subject();
     final String htmlBody = emailRequest.emailContent().html();
     final String textBody = emailRequest.emailContent().text();
+    final String emailFromName =
+        emailRequest.emailFrom() == null ? "" : emailRequest.emailFrom().fullName();
 
     final List<String> emailToList =
         emailRequest.emailToList().stream().map(EmailRequest.EmailContact::emailAddress).toList();
@@ -153,7 +155,12 @@ public class Email {
     }
 
     return new EmailRequestOut(
-        subject, htmlBody, textBody, emailRequestRecipients, emailRequestAttachments);
+        subject,
+        htmlBody,
+        textBody,
+        emailFromName,
+        emailRequestRecipients,
+        emailRequestAttachments);
   }
 
   private Message.MessageBuilder buildMailgunMessage(final EmailRequest emailRequest) {

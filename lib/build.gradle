@@ -46,6 +46,13 @@ repositories {
 }
 
 test {
+    test {
+        environment "SECRET_KEY", "test_secret_key"
+        environment "SECRET_LENGTH", "32"
+        environment "SECRET_ALGO1", "AES"
+        environment "SECRET_ALGO2", "HmacSHA256"
+    }
+
     useJUnitPlatform { options ->
         options.includeEngines 'junit-jupiter'
         options.excludeEngines 'junit-vintage'
@@ -66,7 +73,7 @@ spotless {
 ext {
     archivesBaseName = 'shdsvc'
 }
-version = '1.0.8'
+version = '1.0.9'
 
 jar {
     archiveClassifier = ''

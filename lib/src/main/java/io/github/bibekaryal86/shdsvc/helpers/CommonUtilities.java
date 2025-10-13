@@ -144,6 +144,14 @@ public class CommonUtilities {
     }
   }
 
+  public static <T> T readValueNoEx(final byte[] content, final Class<T> clazz) {
+    try {
+      return OBJECT_MAPPER.readValue(content, clazz);
+    } catch (Exception ignored) {
+      return null;
+    }
+  }
+
   public static int parseIntNoEx(final String value) {
     try {
       return Integer.parseInt(value);

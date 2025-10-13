@@ -12,5 +12,6 @@ public class ConstantUtilities {
   // SECRETS
   public static final String ENV_SECRET_KEY = "SECRET_KEY";
   public static final String ENV_NEW_LENGTH = "SECRET_LENGTH";
-  public static final String ENV_ALGORITHM = "SECRET_ALGO";
+  public static final String ENV_ALGORITHM1 = "SECRET_ALGO1";
+  public static final String ENV_ALGORITHM2 = "SECRET_ALGO2";
 }
