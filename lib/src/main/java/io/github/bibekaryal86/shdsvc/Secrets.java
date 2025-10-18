@@ -10,6 +10,8 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.util.Arrays;
 import java.util.Base64;
+import java.util.List;
+import java.util.Map;
 import javax.crypto.Cipher;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
@@ -75,6 +77,25 @@ public class Secrets {
   public static <T> T decodeBase64(final String base64, final Class<T> clazz) {
     byte[] jsonBytes = Base64.getDecoder().decode(base64);
     return CommonUtilities.readValueNoEx(jsonBytes, clazz);
+  }
+
+  public static boolean checkPermissions(
+      final Map<String, Boolean> permissionsMap, final List<String> permissionsList) {
+    if (permissionsMap == null || permissionsList == null) {
+      return false;
+    }
+
+    if (Boolean.TRUE.equals(permissionsMap.get("SUPERUSER"))) {
+      return true;
+    }
+
+    for (String key : permissionsList) {
+      if (Boolean.TRUE.equals(permissionsMap.get(key))) {
+        return true;
+      }
+    }
+
+    return false;
   }
 
   private static String sign(final String base64) throws Exception {

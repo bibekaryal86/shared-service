@@ -15,10 +15,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class CommonUtilities {
 
   private static final ObjectMapper OBJECT_MAPPER;
+  private static final Logger log = LoggerFactory.getLogger(CommonUtilities.class);
   private static Map<String, String> propertiesMap = new HashMap<>();
 
   static {
@@ -77,7 +80,7 @@ public class CommonUtilities {
     propertiesMap = Collections.unmodifiableMap(tempMap);
   }
 
-  private static String getSystemEnvPropertyActual(String key) {
+  private static String getSystemEnvPropertyActual(final String key) {
     final String value = System.getProperty(key);
     if (isEmpty(value)) {
       return System.getenv(key);
@@ -113,7 +116,8 @@ public class CommonUtilities {
   public static String writeValueAsStringNoEx(final Object value) {
     try {
       return OBJECT_MAPPER.writeValueAsString(value);
-    } catch (Exception ignored) {
+    } catch (Exception ex) {
+      log.error("WriteValueAsStringNoEx: [{}]|[{}]", ex.getClass().getName(), ex.getMessage());
       return value.toString();
     }
   }
@@ -122,6 +126,7 @@ public class CommonUtilities {
     try {
       return CommonUtilities.objectMapperProvider().writeValueAsBytes(object);
     } catch (JsonProcessingException ex) {
+      log.error("WriteValueAsBytesNoEx: [{}]|[{}]", ex.getClass().getName(), ex.getMessage());
       return new byte[0];
     }
   }
@@ -131,7 +136,8 @@ public class CommonUtilities {
   public static <T> T readValueNoEx(final String content, final TypeReference<T> valueTypeRef) {
     try {
       return OBJECT_MAPPER.readValue(content, valueTypeRef);
-    } catch (Exception ignored) {
+    } catch (Exception ex) {
+      log.error("ReadValueNoEx: [{}]|[{}]", ex.getClass().getName(), ex.getMessage());
       return null;
     }
   }
@@ -139,7 +145,8 @@ public class CommonUtilities {
   public static <T> T readValueNoEx(final byte[] content, final TypeReference<T> valueTypeRef) {
     try {
       return OBJECT_MAPPER.readValue(content, valueTypeRef);
-    } catch (Exception ignored) {
+    } catch (Exception ex) {
+      log.error("ReadValueNoEx2: [{}]|[{}]", ex.getClass().getName(), ex.getMessage());
       return null;
     }
   }
@@ -147,7 +154,8 @@ public class CommonUtilities {
   public static <T> T readValueNoEx(final byte[] content, final Class<T> clazz) {
     try {
       return OBJECT_MAPPER.readValue(content, clazz);
-    } catch (Exception ignored) {
+    } catch (Exception ex) {
+      log.error("ReadValueNoEx3: [{}]|[{}]", ex.getClass().getName(), ex.getMessage());
       return null;
     }
   }
@@ -155,17 +163,19 @@ public class CommonUtilities {
   public static int parseIntNoEx(final String value) {
     try {
       return Integer.parseInt(value);
-    } catch (Exception ignored) {
+    } catch (Exception ex) {
+      log.error("ParseIntNoEx: [{}]|[{}]", ex.getClass().getName(), ex.getMessage());
       return 0;
     }
   }
 
-  public static void convert(Object source, Object destination, List<String> exclusions) {
-    Field[] sourceFields = source.getClass().getDeclaredFields();
-    Field[] destinationFields = destination.getClass().getDeclaredFields();
+  public static void convert(
+      final Object source, final Object destination, final List<String> exclusions) {
+    final Field[] sourceFields = source.getClass().getDeclaredFields();
+    final Field[] destinationFields = destination.getClass().getDeclaredFields();
 
-    for (Field sourceField : sourceFields) {
-      for (Field destinationField : destinationFields) {
+    for (final Field sourceField : sourceFields) {
+      for (final Field destinationField : destinationFields) {
         if (sourceField.getName().equals(destinationField.getName())
             && !exclusions.contains(sourceField.getName())) {
           try {
