@@ -2,7 +2,10 @@ package io.github.bibekaryal86.shdsvc;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.Test;
 
 public class SecretsTest {
@@ -72,5 +75,71 @@ public class SecretsTest {
         () -> {
           Secrets.decodeAndVerify(malformed, SampleObject.class);
         });
+  }
+
+  @Test
+  void returnsFalseWhenBothParamsAreNull() {
+    assertFalse(Secrets.checkPermissions(null, null));
+  }
+
+  @Test
+  void returnsFalseWhenParam1IsNull() {
+    List<String> keys = List.of("admin", "user");
+    assertFalse(Secrets.checkPermissions(null, keys));
+  }
+
+  @Test
+  void returnsFalseWhenParam2IsNull() {
+    Map<String, Boolean> map = Map.of("admin", true);
+    assertFalse(Secrets.checkPermissions(map, null));
+  }
+
+  @Test
+  void returnsFalseWhenBothParamsAreEmpty() {
+    assertFalse(Secrets.checkPermissions(Collections.emptyMap(), Collections.emptyList()));
+  }
+
+  @Test
+  void returnsTrueWhenSuperuserIsTrue() {
+    Map<String, Boolean> map = Map.of("SUPERUSER", true, "admin", false);
+    List<String> keys = List.of("admin");
+    assertTrue(Secrets.checkPermissions(map, keys));
+  }
+
+  @Test
+  void returnsFalseWhenSuperuserIsFalseAndNoMatchingTrueKeys() {
+    Map<String, Boolean> map = Map.of("SUPERUSER", false, "admin", false);
+    List<String> keys = List.of("admin");
+    assertFalse(Secrets.checkPermissions(map, keys));
+  }
+
+  @Test
+  void returnsTrueWhenAnyKeyInParam2IsTrue() {
+    Map<String, Boolean> map = Map.of("admin", false, "user", true);
+    List<String> keys = List.of("admin", "user");
+    assertTrue(Secrets.checkPermissions(map, keys));
+  }
+
+  @Test
+  void returnsFalseWhenNoKeysInParam2AreTrue() {
+    Map<String, Boolean> map = Map.of("admin", false, "user", false);
+    List<String> keys = List.of("admin", "user");
+    assertFalse(Secrets.checkPermissions(map, keys));
+  }
+
+  @Test
+  void returnsFalseWhenKeysInParam2AreNotInMap() {
+    Map<String, Boolean> map = Map.of("admin", false);
+    List<String> keys = List.of("unknown", "ghost");
+    assertFalse(Secrets.checkPermissions(map, keys));
+  }
+
+  @Test
+  void handlesNullValuesInMapSafely() {
+    Map<String, Boolean> map = new HashMap<>();
+    map.put("admin", null);
+    map.put("user", false);
+    List<String> keys = List.of("admin", "user");
+    assertFalse(Secrets.checkPermissions(map, keys));
   }
 }
