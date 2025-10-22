@@ -5,6 +5,8 @@ import static io.github.bibekaryal86.shdsvc.helpers.ConstantUtilities.ENV_ALGORI
 import static io.github.bibekaryal86.shdsvc.helpers.ConstantUtilities.ENV_NEW_LENGTH;
 import static io.github.bibekaryal86.shdsvc.helpers.ConstantUtilities.ENV_SECRET_KEY;
 
+import io.github.bibekaryal86.shdsvc.dtos.AuthToken;
+import io.github.bibekaryal86.shdsvc.exception.CheckPermissionException;
 import io.github.bibekaryal86.shdsvc.helpers.CommonUtilities;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -12,6 +14,8 @@ import java.util.Arrays;
 import java.util.Base64;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 import javax.crypto.Cipher;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
@@ -96,6 +100,41 @@ public class Secrets {
     }
 
     return false;
+  }
+
+  public static Map<String, Boolean> checkPermissions(
+      final List<String> permissionsList, final AuthToken authToken) {
+    try {
+      final boolean isPermitted =
+          authToken.getIsSuperUser()
+              || authToken.getPermissions().stream()
+                  .anyMatch(
+                      authTokenPermission ->
+                          permissionsList.contains(authTokenPermission.getPermissionName()));
+
+      if (!isPermitted) {
+        throw new CheckPermissionException("Profile does not have required permissions...");
+      }
+
+      final Set<String> userPermissions =
+          authToken.getPermissions().stream()
+              .map(AuthToken.AuthTokenPermission::getPermissionName)
+              .collect(Collectors.toSet());
+      final Map<String, Boolean> checkedPermissions =
+          permissionsList.stream()
+              .collect(Collectors.toMap(permission -> permission, userPermissions::contains));
+
+      if (authToken.getIsSuperUser()) {
+        checkedPermissions.put("SUPERUSER", Boolean.TRUE);
+      }
+
+      return checkedPermissions;
+    } catch (Exception ex) {
+      if (ex instanceof CheckPermissionException) {
+        throw ex;
+      }
+      throw new CheckPermissionException(ex.getMessage());
+    }
   }
 
   private static String sign(final String base64) throws Exception {

@@ -2,11 +2,14 @@ package io.github.bibekaryal86.shdsvc;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import io.github.bibekaryal86.shdsvc.dtos.AuthToken;
+import io.github.bibekaryal86.shdsvc.exception.CheckPermissionException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
 public class SecretsTest {
 
@@ -79,7 +82,7 @@ public class SecretsTest {
 
   @Test
   void returnsFalseWhenBothParamsAreNull() {
-    assertFalse(Secrets.checkPermissions(null, null));
+    assertFalse(Secrets.checkPermissions((Map<String, Boolean>) null, (List<String>) null));
   }
 
   @Test
@@ -141,5 +144,74 @@ public class SecretsTest {
     map.put("user", false);
     List<String> keys = List.of("admin", "user");
     assertFalse(Secrets.checkPermissions(map, keys));
+  }
+
+  @Test
+  void testSuperUserHasAccess() {
+    AuthToken authToken = Mockito.mock(AuthToken.class);
+    Mockito.when(authToken.getIsSuperUser()).thenReturn(true);
+
+    assertDoesNotThrow(
+        () -> Secrets.checkPermissions(List.of("READ_USER", "WRITE_USER"), authToken));
+  }
+
+  @Test
+  void testHasRequiredPermission() {
+    AuthToken.AuthTokenPermission permission = Mockito.mock(AuthToken.AuthTokenPermission.class);
+    Mockito.when(permission.getPermissionName()).thenReturn("READ_USER");
+
+    AuthToken authToken = Mockito.mock(AuthToken.class);
+    Mockito.when(authToken.getIsSuperUser()).thenReturn(false);
+    Mockito.when(authToken.getPermissions()).thenReturn(List.of(permission));
+
+    assertDoesNotThrow(
+        () -> Secrets.checkPermissions(List.of("READ_USER", "DELETE_USER"), authToken));
+  }
+
+  @Test
+  void testMissingRequiredPermission() {
+    AuthToken.AuthTokenPermission permission = Mockito.mock(AuthToken.AuthTokenPermission.class);
+    Mockito.when(permission.getPermissionName()).thenReturn("READ_USER");
+
+    AuthToken authToken = Mockito.mock(AuthToken.class);
+    Mockito.when(authToken.getIsSuperUser()).thenReturn(false);
+    Mockito.when(authToken.getPermissions()).thenReturn(List.of(permission));
+
+    CheckPermissionException ex =
+        assertThrows(
+            CheckPermissionException.class,
+            () -> Secrets.checkPermissions(List.of("WRITE_USER"), authToken));
+
+    assertEquals(
+        "Permission Denied: Profile does not have required permissions...", ex.getMessage());
+  }
+
+  @Test
+  void testUnexpectedExceptionWrapped() {
+    AuthToken authToken = Mockito.mock(AuthToken.class);
+    Mockito.when(authToken.getIsSuperUser()).thenReturn(false);
+    Mockito.when(authToken.getPermissions()).thenThrow(new RuntimeException("DB error"));
+
+    CheckPermissionException ex =
+        assertThrows(
+            CheckPermissionException.class,
+            () -> Secrets.checkPermissions(List.of("READ_USER"), authToken));
+
+    assertEquals("Permission Denied: DB error", ex.getMessage());
+  }
+
+  @Test
+  void testRethrowCheckPermissionException() {
+    AuthToken authToken = Mockito.mock(AuthToken.class);
+    Mockito.when(authToken.getIsSuperUser()).thenReturn(false);
+    Mockito.when(authToken.getPermissions())
+        .thenThrow(new CheckPermissionException("Explicit throw"));
+
+    CheckPermissionException ex =
+        assertThrows(
+            CheckPermissionException.class,
+            () -> Secrets.checkPermissions(List.of("ANY_PERMISSION"), authToken));
+
+    assertEquals("Permission Denied: Explicit throw", ex.getMessage());
   }
 }
