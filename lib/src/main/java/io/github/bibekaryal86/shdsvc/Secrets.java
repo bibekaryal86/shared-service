@@ -5,6 +5,8 @@ import static io.github.bibekaryal86.shdsvc.helpers.ConstantUtilities.ENV_ALGORI
 import static io.github.bibekaryal86.shdsvc.helpers.ConstantUtilities.ENV_NEW_LENGTH;
 import static io.github.bibekaryal86.shdsvc.helpers.ConstantUtilities.ENV_SECRET_KEY;
 
+import io.github.bibekaryal86.shdsvc.dtos.AuthToken;
+import io.github.bibekaryal86.shdsvc.exception.CheckPermissionException;
 import io.github.bibekaryal86.shdsvc.helpers.CommonUtilities;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -79,7 +81,7 @@ public class Secrets {
     return CommonUtilities.readValueNoEx(jsonBytes, clazz);
   }
 
-  public static boolean checkPermissions(
+  public static boolean checkPermissionsMap(
       final Map<String, Boolean> permissionsMap, final List<String> permissionsList) {
     if (permissionsMap == null || permissionsList == null) {
       return false;
@@ -96,6 +98,27 @@ public class Secrets {
     }
 
     return false;
+  }
+
+  public static void checkPermissionsToken(
+      final AuthToken authToken, final List<String> permissionsList) {
+    try {
+      final boolean isPermitted =
+          authToken.getIsSuperUser()
+              || authToken.getPermissions().stream()
+                  .anyMatch(
+                      authTokenPermission ->
+                          permissionsList.contains(authTokenPermission.getPermissionName()));
+
+      if (!isPermitted) {
+        throw new CheckPermissionException("Profile does not have required permissions...");
+      }
+    } catch (Exception ex) {
+      if (ex instanceof CheckPermissionException) {
+        throw ex;
+      }
+      throw new CheckPermissionException(ex.getMessage());
+    }
   }
 
   private static String sign(final String base64) throws Exception {

@@ -2,11 +2,14 @@ package io.github.bibekaryal86.shdsvc;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import io.github.bibekaryal86.shdsvc.dtos.AuthToken;
+import io.github.bibekaryal86.shdsvc.exception.CheckPermissionException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
 public class SecretsTest {
 
@@ -79,59 +82,59 @@ public class SecretsTest {
 
   @Test
   void returnsFalseWhenBothParamsAreNull() {
-    assertFalse(Secrets.checkPermissions(null, null));
+    assertFalse(Secrets.checkPermissionsMap(null, null));
   }
 
   @Test
   void returnsFalseWhenParam1IsNull() {
     List<String> keys = List.of("admin", "user");
-    assertFalse(Secrets.checkPermissions(null, keys));
+    assertFalse(Secrets.checkPermissionsMap(null, keys));
   }
 
   @Test
   void returnsFalseWhenParam2IsNull() {
     Map<String, Boolean> map = Map.of("admin", true);
-    assertFalse(Secrets.checkPermissions(map, null));
+    assertFalse(Secrets.checkPermissionsMap(map, null));
   }
 
   @Test
   void returnsFalseWhenBothParamsAreEmpty() {
-    assertFalse(Secrets.checkPermissions(Collections.emptyMap(), Collections.emptyList()));
+    assertFalse(Secrets.checkPermissionsMap(Collections.emptyMap(), Collections.emptyList()));
   }
 
   @Test
   void returnsTrueWhenSuperuserIsTrue() {
     Map<String, Boolean> map = Map.of("SUPERUSER", true, "admin", false);
     List<String> keys = List.of("admin");
-    assertTrue(Secrets.checkPermissions(map, keys));
+    assertTrue(Secrets.checkPermissionsMap(map, keys));
   }
 
   @Test
   void returnsFalseWhenSuperuserIsFalseAndNoMatchingTrueKeys() {
     Map<String, Boolean> map = Map.of("SUPERUSER", false, "admin", false);
     List<String> keys = List.of("admin");
-    assertFalse(Secrets.checkPermissions(map, keys));
+    assertFalse(Secrets.checkPermissionsMap(map, keys));
   }
 
   @Test
   void returnsTrueWhenAnyKeyInParam2IsTrue() {
     Map<String, Boolean> map = Map.of("admin", false, "user", true);
     List<String> keys = List.of("admin", "user");
-    assertTrue(Secrets.checkPermissions(map, keys));
+    assertTrue(Secrets.checkPermissionsMap(map, keys));
   }
 
   @Test
   void returnsFalseWhenNoKeysInParam2AreTrue() {
     Map<String, Boolean> map = Map.of("admin", false, "user", false);
     List<String> keys = List.of("admin", "user");
-    assertFalse(Secrets.checkPermissions(map, keys));
+    assertFalse(Secrets.checkPermissionsMap(map, keys));
   }
 
   @Test
   void returnsFalseWhenKeysInParam2AreNotInMap() {
     Map<String, Boolean> map = Map.of("admin", false);
     List<String> keys = List.of("unknown", "ghost");
-    assertFalse(Secrets.checkPermissions(map, keys));
+    assertFalse(Secrets.checkPermissionsMap(map, keys));
   }
 
   @Test
@@ -140,6 +143,75 @@ public class SecretsTest {
     map.put("admin", null);
     map.put("user", false);
     List<String> keys = List.of("admin", "user");
-    assertFalse(Secrets.checkPermissions(map, keys));
+    assertFalse(Secrets.checkPermissionsMap(map, keys));
+  }
+
+  @Test
+  void testSuperUserHasAccess() {
+    AuthToken authToken = Mockito.mock(AuthToken.class);
+    Mockito.when(authToken.getIsSuperUser()).thenReturn(true);
+
+    assertDoesNotThrow(
+        () -> Secrets.checkPermissionsToken(authToken, List.of("READ_USER", "WRITE_USER")));
+  }
+
+  @Test
+  void testHasRequiredPermission() {
+    AuthToken.AuthTokenPermission permission = Mockito.mock(AuthToken.AuthTokenPermission.class);
+    Mockito.when(permission.getPermissionName()).thenReturn("READ_USER");
+
+    AuthToken authToken = Mockito.mock(AuthToken.class);
+    Mockito.when(authToken.getIsSuperUser()).thenReturn(false);
+    Mockito.when(authToken.getPermissions()).thenReturn(List.of(permission));
+
+    assertDoesNotThrow(
+        () -> Secrets.checkPermissionsToken(authToken, List.of("READ_USER", "DELETE_USER")));
+  }
+
+  @Test
+  void testMissingRequiredPermission() {
+    AuthToken.AuthTokenPermission permission = Mockito.mock(AuthToken.AuthTokenPermission.class);
+    Mockito.when(permission.getPermissionName()).thenReturn("READ_USER");
+
+    AuthToken authToken = Mockito.mock(AuthToken.class);
+    Mockito.when(authToken.getIsSuperUser()).thenReturn(false);
+    Mockito.when(authToken.getPermissions()).thenReturn(List.of(permission));
+
+    CheckPermissionException ex =
+        assertThrows(
+            CheckPermissionException.class,
+            () -> Secrets.checkPermissionsToken(authToken, List.of("WRITE_USER")));
+
+    assertEquals(
+        "Permission Denied: Profile does not have required permissions...", ex.getMessage());
+  }
+
+  @Test
+  void testUnexpectedExceptionWrapped() {
+    AuthToken authToken = Mockito.mock(AuthToken.class);
+    Mockito.when(authToken.getIsSuperUser()).thenReturn(false);
+    Mockito.when(authToken.getPermissions()).thenThrow(new RuntimeException("DB error"));
+
+    CheckPermissionException ex =
+        assertThrows(
+            CheckPermissionException.class,
+            () -> Secrets.checkPermissionsToken(authToken, List.of("READ_USER")));
+
+    assertEquals("Permission Denied: DB error", ex.getMessage());
+  }
+
+  @Test
+  void testRethrowCheckPermissionException() {
+    AuthToken authToken = Mockito.mock(AuthToken.class);
+    Mockito.when(authToken.getIsSuperUser()).thenReturn(false);
+    Mockito.when(authToken.getPermissions())
+        .thenThrow(new CheckPermissionException("Explicit throw"));
+
+    CheckPermissionException ex =
+        assertThrows(
+            CheckPermissionException.class,
+            () -> Secrets.checkPermissionsToken(authToken, List.of("ANY_PERMISSION")));
+
+    assertEquals("Permission Denied: Explicit throw", ex.getMessage());
   }
 }
