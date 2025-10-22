@@ -14,6 +14,8 @@ import java.util.Arrays;
 import java.util.Base64;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 import javax.crypto.Cipher;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
@@ -81,7 +83,7 @@ public class Secrets {
     return CommonUtilities.readValueNoEx(jsonBytes, clazz);
   }
 
-  public static boolean checkPermissionsMap(
+  public static boolean checkPermissions(
       final Map<String, Boolean> permissionsMap, final List<String> permissionsList) {
     if (permissionsMap == null || permissionsList == null) {
       return false;
@@ -100,8 +102,8 @@ public class Secrets {
     return false;
   }
 
-  public static void checkPermissionsToken(
-      final AuthToken authToken, final List<String> permissionsList) {
+  public static Map<String, Boolean> checkPermissions(
+      final List<String> permissionsList, final AuthToken authToken) {
     try {
       final boolean isPermitted =
           authToken.getIsSuperUser()
@@ -113,6 +115,20 @@ public class Secrets {
       if (!isPermitted) {
         throw new CheckPermissionException("Profile does not have required permissions...");
       }
+
+      final Set<String> userPermissions =
+          authToken.getPermissions().stream()
+              .map(AuthToken.AuthTokenPermission::getPermissionName)
+              .collect(Collectors.toSet());
+      final Map<String, Boolean> checkedPermissions =
+          permissionsList.stream()
+              .collect(Collectors.toMap(permission -> permission, userPermissions::contains));
+
+      if (authToken.getIsSuperUser()) {
+        checkedPermissions.put("SUPERUSER", Boolean.TRUE);
+      }
+
+      return checkedPermissions;
     } catch (Exception ex) {
       if (ex instanceof CheckPermissionException) {
         throw ex;

@@ -82,59 +82,59 @@ public class SecretsTest {
 
   @Test
   void returnsFalseWhenBothParamsAreNull() {
-    assertFalse(Secrets.checkPermissionsMap(null, null));
+    assertFalse(Secrets.checkPermissions((Map<String, Boolean>) null, (List<String>) null));
   }
 
   @Test
   void returnsFalseWhenParam1IsNull() {
     List<String> keys = List.of("admin", "user");
-    assertFalse(Secrets.checkPermissionsMap(null, keys));
+    assertFalse(Secrets.checkPermissions(null, keys));
   }
 
   @Test
   void returnsFalseWhenParam2IsNull() {
     Map<String, Boolean> map = Map.of("admin", true);
-    assertFalse(Secrets.checkPermissionsMap(map, null));
+    assertFalse(Secrets.checkPermissions(map, null));
   }
 
   @Test
   void returnsFalseWhenBothParamsAreEmpty() {
-    assertFalse(Secrets.checkPermissionsMap(Collections.emptyMap(), Collections.emptyList()));
+    assertFalse(Secrets.checkPermissions(Collections.emptyMap(), Collections.emptyList()));
   }
 
   @Test
   void returnsTrueWhenSuperuserIsTrue() {
     Map<String, Boolean> map = Map.of("SUPERUSER", true, "admin", false);
     List<String> keys = List.of("admin");
-    assertTrue(Secrets.checkPermissionsMap(map, keys));
+    assertTrue(Secrets.checkPermissions(map, keys));
   }
 
   @Test
   void returnsFalseWhenSuperuserIsFalseAndNoMatchingTrueKeys() {
     Map<String, Boolean> map = Map.of("SUPERUSER", false, "admin", false);
     List<String> keys = List.of("admin");
-    assertFalse(Secrets.checkPermissionsMap(map, keys));
+    assertFalse(Secrets.checkPermissions(map, keys));
   }
 
   @Test
   void returnsTrueWhenAnyKeyInParam2IsTrue() {
     Map<String, Boolean> map = Map.of("admin", false, "user", true);
     List<String> keys = List.of("admin", "user");
-    assertTrue(Secrets.checkPermissionsMap(map, keys));
+    assertTrue(Secrets.checkPermissions(map, keys));
   }
 
   @Test
   void returnsFalseWhenNoKeysInParam2AreTrue() {
     Map<String, Boolean> map = Map.of("admin", false, "user", false);
     List<String> keys = List.of("admin", "user");
-    assertFalse(Secrets.checkPermissionsMap(map, keys));
+    assertFalse(Secrets.checkPermissions(map, keys));
   }
 
   @Test
   void returnsFalseWhenKeysInParam2AreNotInMap() {
     Map<String, Boolean> map = Map.of("admin", false);
     List<String> keys = List.of("unknown", "ghost");
-    assertFalse(Secrets.checkPermissionsMap(map, keys));
+    assertFalse(Secrets.checkPermissions(map, keys));
   }
 
   @Test
@@ -143,7 +143,7 @@ public class SecretsTest {
     map.put("admin", null);
     map.put("user", false);
     List<String> keys = List.of("admin", "user");
-    assertFalse(Secrets.checkPermissionsMap(map, keys));
+    assertFalse(Secrets.checkPermissions(map, keys));
   }
 
   @Test
@@ -152,7 +152,7 @@ public class SecretsTest {
     Mockito.when(authToken.getIsSuperUser()).thenReturn(true);
 
     assertDoesNotThrow(
-        () -> Secrets.checkPermissionsToken(authToken, List.of("READ_USER", "WRITE_USER")));
+        () -> Secrets.checkPermissions(List.of("READ_USER", "WRITE_USER"), authToken));
   }
 
   @Test
@@ -165,7 +165,7 @@ public class SecretsTest {
     Mockito.when(authToken.getPermissions()).thenReturn(List.of(permission));
 
     assertDoesNotThrow(
-        () -> Secrets.checkPermissionsToken(authToken, List.of("READ_USER", "DELETE_USER")));
+        () -> Secrets.checkPermissions(List.of("READ_USER", "DELETE_USER"), authToken));
   }
 
   @Test
@@ -180,7 +180,7 @@ public class SecretsTest {
     CheckPermissionException ex =
         assertThrows(
             CheckPermissionException.class,
-            () -> Secrets.checkPermissionsToken(authToken, List.of("WRITE_USER")));
+            () -> Secrets.checkPermissions(List.of("WRITE_USER"), authToken));
 
     assertEquals(
         "Permission Denied: Profile does not have required permissions...", ex.getMessage());
@@ -195,7 +195,7 @@ public class SecretsTest {
     CheckPermissionException ex =
         assertThrows(
             CheckPermissionException.class,
-            () -> Secrets.checkPermissionsToken(authToken, List.of("READ_USER")));
+            () -> Secrets.checkPermissions(List.of("READ_USER"), authToken));
 
     assertEquals("Permission Denied: DB error", ex.getMessage());
   }
@@ -210,7 +210,7 @@ public class SecretsTest {
     CheckPermissionException ex =
         assertThrows(
             CheckPermissionException.class,
-            () -> Secrets.checkPermissionsToken(authToken, List.of("ANY_PERMISSION")));
+            () -> Secrets.checkPermissions(List.of("ANY_PERMISSION"), authToken));
 
     assertEquals("Permission Denied: Explicit throw", ex.getMessage());
   }
