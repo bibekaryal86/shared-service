@@ -17,8 +17,8 @@ plugins {
 dependencies {
     // api dependency is exported to consumers, that is to say found on their compile classpath.
     // implementation dependency is used internally, and not exposed to consumers on their own compile classpath.
-    api 'com.fasterxml.jackson.core:jackson-databind:2.20.1'
-    api 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.20.1'
+    api 'com.fasterxml.jackson.core:jackson-databind:2.21.0'
+    api 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.21.0'
 
     implementation 'com.squareup.okhttp3:okhttp:5.3.2'
     implementation 'com.mailgun:mailgun-java:2.2.1'
