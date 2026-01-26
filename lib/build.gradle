@@ -24,7 +24,7 @@ dependencies {
     implementation 'com.mailgun:mailgun-java:2.2.1'
 
     implementation 'org.slf4j:slf4j-api:2.0.17'
-    implementation 'ch.qos.logback:logback-classic:1.5.24'
+    implementation 'ch.qos.logback:logback-classic:1.5.26'
 
     testImplementation 'org.junit.platform:junit-platform-launcher:6.0.2'
     testImplementation 'org.junit.jupiter:junit-jupiter-api:6.0.2'
