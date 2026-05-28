@@ -1,16 +1,22 @@
 package io.github.bibekaryal86.shdsvc.helpers;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
 import java.util.Base64;
 import java.util.Collection;
 import java.util.List;
@@ -20,6 +26,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 public class CommonUtilitiesTest {
+
+  // Helper class for deserialization test
+  static class KnownFieldOnly {
+    public String known;
+  }
 
   private static final String TEST_KEY = "TEST_KEY";
   private static final String TEST_VALUE = "TEST_VALUE";
@@ -147,6 +158,75 @@ public class CommonUtilitiesTest {
         mapper1,
         mapper2,
         "Expected objectMapperProvider to return the same ObjectMapper instance.");
+  }
+
+  @Test
+  void objectMapperProvider_returnsJsonMapperInstance() {
+    ObjectMapper mapper = CommonUtilities.objectMapperProvider();
+
+    assertInstanceOf(
+        JsonMapper.class, mapper, "Expected objectMapperProvider to return a JsonMapper instance.");
+  }
+
+  @Test
+  void objectMapperBuilder_returnsNewBuilderEachCall() {
+    JsonMapper.Builder builder1 = CommonUtilities.objectMapperBuilder();
+    JsonMapper.Builder builder2 = CommonUtilities.objectMapperBuilder();
+
+    assertNotSame(
+        builder1,
+        builder2,
+        "Expected objectMapperBuilder to return a new builder instance each call.");
+  }
+
+  @Test
+  void objectMapperBuilder_buildsIndependentMapper() {
+    ObjectMapper singleton = CommonUtilities.objectMapperProvider();
+    ObjectMapper derived = CommonUtilities.objectMapperBuilder().build();
+
+    assertNotSame(
+        singleton,
+        derived,
+        "Expected builder to produce a new independent mapper, not the singleton.");
+  }
+
+  @Test
+  void objectMapperBuilder_inheritsLibraryConfig() throws Exception {
+    ObjectMapper mapper = CommonUtilities.objectMapperBuilder().build();
+
+    String json = "{\"known\": \"value\", \"unknown\": \"extra\"}";
+    assertDoesNotThrow(
+        () -> mapper.readValue(json, KnownFieldOnly.class),
+        "Expected unknown properties to be ignored.");
+
+    LocalDate date = LocalDate.of(2024, 1, 15);
+    String serialized = mapper.writeValueAsString(date);
+    assertEquals(
+        "\"2024-01-15\"",
+        serialized,
+        "Expected LocalDate to serialize as ISO string, not timestamp array.");
+  }
+
+  @Test
+  void objectMapperBuilder_allowsAdditionalConfig() {
+    ObjectMapper mapper =
+        CommonUtilities.objectMapperBuilder().enable(MapperFeature.DEFAULT_VIEW_INCLUSION).build();
+
+    assertTrue(
+        mapper.isEnabled(MapperFeature.DEFAULT_VIEW_INCLUSION),
+        "Expected consumer-added config to be applied on top of library defaults.");
+  }
+
+  @Test
+  void objectMapperBuilder_doesNotMutateSingleton() {
+    CommonUtilities.objectMapperBuilder()
+        .enable(MapperFeature.USE_WRAPPER_NAME_AS_PROPERTY_NAME)
+        .build();
+
+    ObjectMapper singleton = CommonUtilities.objectMapperProvider();
+    assertFalse(
+        singleton.isEnabled(MapperFeature.USE_WRAPPER_NAME_AS_PROPERTY_NAME),
+        "Expected singleton to be unaffected by consumer builder modifications.");
   }
 
   @Test

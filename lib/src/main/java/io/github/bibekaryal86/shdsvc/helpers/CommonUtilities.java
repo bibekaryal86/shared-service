@@ -5,6 +5,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import java.lang.reflect.Field;
 import java.nio.charset.StandardCharsets;
@@ -20,15 +21,17 @@ import org.slf4j.LoggerFactory;
 
 public class CommonUtilities {
 
-  private static final ObjectMapper OBJECT_MAPPER;
+  private static final JsonMapper OBJECT_MAPPER;
   private static final Logger log = LoggerFactory.getLogger(CommonUtilities.class);
   private static Map<String, String> propertiesMap = new HashMap<>();
 
   static {
-    OBJECT_MAPPER = new ObjectMapper();
-    OBJECT_MAPPER.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-    OBJECT_MAPPER.registerModule(new JavaTimeModule());
-    OBJECT_MAPPER.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+    OBJECT_MAPPER =
+        JsonMapper.builder()
+            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, Boolean.FALSE)
+            .addModule(new JavaTimeModule())
+            .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+            .build();
   }
 
   public static String getSystemEnvProperty(final String key, final String defaultValue) {
@@ -107,6 +110,10 @@ public class CommonUtilities {
     return "Basic "
         + Base64.getEncoder()
             .encodeToString((appUsername + ":" + appPassword).getBytes(StandardCharsets.UTF_8));
+  }
+
+  public static JsonMapper.Builder objectMapperBuilder() {
+    return OBJECT_MAPPER.rebuild();
   }
 
   public static ObjectMapper objectMapperProvider() {
