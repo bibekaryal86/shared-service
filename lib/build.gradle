@@ -11,7 +11,7 @@ plugins {
     id 'java-library'
     id 'signing'
     id 'maven-publish'
-    id 'com.diffplug.spotless' version '8.9.0'
+    id 'com.diffplug.spotless' version '8.10.0'
 }
 
 dependencies {
